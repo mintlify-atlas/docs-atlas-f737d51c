@@ -1,0 +1,126 @@
+{
+  "projectType": "ai-ml",
+  "projectName": "Data Science Bootcamp - Talento Digital",
+  "projectDescription": "Comprehensive data science training curriculum covering Python, data analysis, machine learning, and deep learning",
+  "theme": "palm",
+  "primaryColor": "#3B82F6",
+  "lightColor": "#60A5FA",
+  "darkColor": "#1E40AF",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Getting Started",
+            "pages": [
+              "introduction",
+              "overview",
+              "setup"
+            ]
+          },
+          {
+            "group": "Python Fundamentals",
+            "pages": [
+              "modules/python-basics",
+              "modules/python-oop",
+              "modules/python-projects"
+            ]
+          },
+          {
+            "group": "Data Preparation & Analysis",
+            "pages": [
+              "modules/numpy-pandas",
+              "modules/data-wrangling",
+              "modules/exploratory-analysis"
+            ]
+          },
+          {
+            "group": "Statistical Inference",
+            "pages": [
+              "modules/probability",
+              "modules/distributions",
+              "modules/hypothesis-testing"
+            ]
+          },
+          {
+            "group": "Machine Learning",
+            "pages": [
+              "modules/supervised-learning",
+              "modules/regression-models",
+              "modules/classification-models",
+              "modules/model-evaluation"
+            ]
+          },
+          {
+            "group": "Advanced Topics",
+            "pages": [
+              "modules/unsupervised-learning",
+              "modules/clustering",
+              "modules/deep-learning",
+              "modules/neural-networks"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Projects",
+        "groups": [
+          {
+            "group": "Course Projects",
+            "pages": [
+              "projects/contact-manager",
+              "projects/data-preparation",
+              "projects/eda-comercio",
+              "projects/statistical-inference",
+              "projects/regression-ecommerce",
+              "projects/customer-segmentation",
+              "projects/deep-learning"
+            ]
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
+          {
+            "group": "Learning Resources",
+            "pages": [
+              "resources/notebooks",
+              "resources/datasets",
+              "resources/tools",
+              "resources/glossary"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "8 comprehensive modules covering data science fundamentals",
+    "111+ hands-on Jupyter notebooks with real-world examples",
+    "Multiple capstone projects with datasets and visualizations",
+    "Python basics through advanced deep learning with Keras/PyTorch",
+    "Statistical inference and hypothesis testing",
+    "Supervised and unsupervised machine learning",
+    "Interactive dashboards with Streamlit",
+    "Complete data analysis pipeline from collection to modeling"
+  ],
+  "publicApiSurface": [
+    "Module A1: Python Fundamentals",
+    "Module A2: Object-Oriented Programming",
+    "Module A3: Data Preparation with NumPy and Pandas",
+    "Module A4: Exploratory Data Analysis",
+    "Module A5: Statistical Inference",
+    "Module A6: Supervised Learning - Regression",
+    "Module A7: Unsupervised Learning - Clustering",
+    "Module A8: Deep Learning with Keras and PyTorch",
+    "Contact Management System Project",
+    "E-commerce Data Preparation Project",
+    "ComercioYA EDA Project",
+    "Statistical Inference Project",
+    "Regression Modeling Project",
+    "Customer Segmentation Project",
+    "Deep Learning Classification Project"
+  ]
+}
