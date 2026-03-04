@@ -1,0 +1,244 @@
+---
+title: Supervised learning
+description: Introduction to supervised machine learning concepts and methodology
+icon: robot
+---
+
+## What is supervised learning?
+
+Supervised learning is a machine learning paradigm where models learn from labeled training data to make predictions on new, unseen data. The "supervision" comes from having correct answers (labels) during training.
+
+### Key Characteristics
+
+- **Labeled data**: Each training example includes both input features and the correct output
+- **Learning objective**: Find patterns that map inputs to outputs
+- **Prediction**: Apply learned patterns to make predictions on new data
+- **Evaluation**: Measure performance using known correct answers on test data
+
+## Types of Supervised Learning
+
+### 1. Regression
+
+Predict continuous numerical values.
+
+**Examples:**
+- Predicting house prices based on features (size, location, bedrooms)
+- Forecasting sales revenue for an e-commerce business
+- Estimating customer lifetime value
+
+**Module A6 Project:** E-commerce sales prediction using the Amazon sales dataset to predict `total_sales` per order.
+
+### 2. Classification
+
+Predict discrete categories or classes.
+
+**Examples:**
+- Email spam detection (spam vs. not spam)
+- Customer churn prediction (will leave vs. will stay)
+- Image recognition (identify objects in photos)
+
+**Module A8 Project:** Fashion-MNIST image classification into 10 clothing categories.
+
+## The Machine Learning Pipeline
+
+<Steps>
+  <Step title="Data collection and exploration">
+    Gather data and understand its structure, quality, and distributions.
+    
+    - Load datasets (CSV, Excel, databases)
+    - Check for missing values, duplicates, outliers
+    - Visualize distributions and relationships
+  </Step>
+  
+  <Step title="Data preprocessing">
+    Clean and transform data into a format suitable for machine learning.
+    
+    **For numeric features:**
+    - Impute missing values (median, mean)
+    - Scale/normalize (StandardScaler, MinMaxScaler)
+    - Create derived features (e.g., date differences)
+    
+    **For categorical features:**
+    - Encode as numbers (OneHotEncoder, LabelEncoder)
+    - Handle high-cardinality categories
+    - Impute missing categories (mode)
+  </Step>
+  
+  <Step title="Train-test split">
+    Divide data into training and testing sets.
+    
+    ```python Train-Test Split
+    from sklearn.model_selection import train_test_split
+    
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, 
+        test_size=0.2,  # 80% train, 20% test
+        random_state=42
+    )
+    ```
+  </Step>
+  
+  <Step title="Model selection and training">
+    Choose appropriate algorithms and train models.
+    
+    - Start with simple baseline models
+    - Try multiple algorithms
+    - Use cross-validation to assess stability
+  </Step>
+  
+  <Step title="Model evaluation">
+    Assess model performance using appropriate metrics.
+    
+    **Regression metrics:** MAE, MSE, RMSE, R²
+    
+    **Classification metrics:** Accuracy, Precision, Recall, F1-score
+  </Step>
+  
+  <Step title="Model optimization">
+    Improve model performance through hyperparameter tuning.
+    
+    - Grid search (GridSearchCV)
+    - Random search (RandomizedSearchCV)
+    - Feature engineering and selection
+  </Step>
+  
+  <Step title="Deployment and monitoring">
+    Put the model into production and track its performance.
+    
+    - Save trained models (pickle, joblib)
+    - Create prediction APIs
+    - Monitor for model drift
+    - Retrain periodically
+  </Step>
+</Steps>
+
+## Key Concepts
+
+<Accordion title="Features and target variables">
+  **Features (X)**: Input variables used to make predictions
+  - Also called: independent variables, predictors, inputs
+  - Example: In e-commerce, features might include product category, price, discount, shipping cost
+  
+  **Target (y)**: Output variable we want to predict
+  - Also called: dependent variable, label, response
+  - Example: In e-commerce, target might be total_sales amount
+</Accordion>
+
+<Accordion title="Training vs. testing data">
+  **Training set**: Data used to fit the model
+  - Model learns patterns from this data
+  - Typically 70-80% of total data
+  
+  **Test set**: Data held out for evaluation
+  - Simulates real-world prediction on unseen data
+  - Typically 20-30% of total data
+  - Must never be used during training
+  
+  **Why split?** To detect overfitting and ensure model generalizes well.
+</Accordion>
+
+<Accordion title="Overfitting vs. underfitting">
+  **Overfitting**: Model learns training data too well, including noise
+  - High training accuracy, low test accuracy
+  - Solution: More data, regularization, simpler model
+  
+  **Underfitting**: Model is too simple to capture patterns
+  - Low training accuracy, low test accuracy
+  - Solution: More complex model, more features, less regularization
+  
+  **The goal**: Find the right balance (good generalization)
+</Accordion>
+
+<Accordion title="Cross-validation">
+  K-Fold cross-validation splits data into K parts (folds):
+  1. Train on K-1 folds, test on 1 fold
+  2. Repeat K times, each time with a different test fold
+  3. Average the K test scores
+  
+  **Benefits:**
+  - More reliable performance estimate
+  - All data used for both training and testing
+  - Reduces variance in performance metrics
+  
+  ```python K-Fold Cross-Validation
+  from sklearn.model_selection import cross_val_score
+  from sklearn.linear_model import LinearRegression
+  
+  model = LinearRegression()
+  scores = cross_val_score(model, X, y, cv=5, scoring='r2')
+  print(f"R² scores: {scores}")
+  print(f"Mean R²: {scores.mean():.3f} (+/- {scores.std():.3f})")
+  ```
+</Accordion>
+
+## Scikit-learn: The Standard Library
+
+Scikit-learn provides a consistent API for machine learning in Python.
+
+```python Scikit-learn Pattern
+from sklearn.linear_model import LinearRegression
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+# Create a pipeline
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('model', LinearRegression())
+])
+
+# Train
+pipeline.fit(X_train, y_train)
+
+# Predict
+y_pred = pipeline.predict(X_test)
+
+# Evaluate
+score = pipeline.score(X_test, y_test)
+print(f"R² score: {score:.3f}")
+```
+
+<Note>
+  All scikit-learn models follow the same pattern: `fit()`, `predict()`, `score()`. This makes it easy to experiment with different algorithms.
+</Note>
+
+## Module A6: Hands-On Learning
+
+In Module A6 of the bootcamp, you'll work through:
+
+<CardGroup cols={2}>
+  <Card title="Regression models" icon="chart-line" href="/modules/regression-models">
+    Linear regression, polynomial features, Ridge, Lasso, Gradient Boosting
+  </Card>
+  
+  <Card title="Classification models" icon="diagram-project" href="/modules/classification-models">
+    Logistic regression, KNN, decision trees, random forests
+  </Card>
+  
+  <Card title="Model evaluation" icon="chart-bar" href="/modules/model-evaluation">
+    Metrics, confusion matrices, ROC curves, model selection
+  </Card>
+  
+  <Card title="E-commerce project" icon="bag-shopping" href="/projects/regression-ecommerce">
+    Predict sales using real Amazon dataset with 10,000 orders
+  </Card>
+</CardGroup>
+
+## Best Practices
+
+<Warning>
+  **Never touch your test set until final evaluation.** Using test data for model selection or hyperparameter tuning leads to overly optimistic performance estimates.
+</Warning>
+
+<Tip>
+  **Start simple, then iterate.** Begin with a basic linear model to establish a baseline, then try more complex models. Sometimes simple models are sufficient!
+</Tip>
+
+<Info>
+  **Feature engineering often matters more than algorithm choice.** Spend time creating meaningful derived features from your data.
+</Info>
+
+## Next Steps
+
+<Card title="Learn regression modeling" icon="arrow-right" href="/modules/regression-models">
+  Dive into linear regression, polynomial features, and ensemble methods
+</Card>

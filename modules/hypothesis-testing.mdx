@@ -1,0 +1,794 @@
+---
+title: 'Hypothesis Testing'
+description: 'Learn statistical inference through confidence intervals, t-tests, p-values, and error types with student health examples'
+---
+
+# Hypothesis Testing
+
+Hypothesis testing is the process of using sample data to make decisions about population parameters. This is the culmination of statistical inference - where probability, distributions, and sampling theory come together.
+
+## Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+- Construct and interpret confidence intervals for means
+- Formulate null and alternative hypotheses
+- Conduct one-sample and two-sample t-tests
+- Interpret p-values correctly
+- Understand Type I and Type II errors
+- Apply hypothesis tests to real research questions
+
+---
+
+## Confidence Intervals
+
+A **confidence interval** provides a range of plausible values for a population parameter (like the mean).
+
+### Understanding Confidence Intervals
+
+<Note>
+**A 95% confidence interval means:**
+
+If we repeated our sampling process many times and calculated a 95% CI each time, approximately 95% of those intervals would contain the true population parameter.
+
+**It does NOT mean:** "There's a 95% probability the true mean is in this interval" (the true mean is fixed, not random).
+</Note>
+
+### Formula for CI of the Mean
+
+When population standard deviation (σ) is unknown, we use the **t-distribution**:
+
+```
+CI = x̄ ± t* × (s/√n)
+
+Where:
+- x̄ = sample mean
+- t* = critical value from t-distribution (depends on confidence level and df)
+- s = sample standard deviation
+- n = sample size
+- df = degrees of freedom = n - 1
+```
+
+### Example 1: Sleep Hours Confidence Interval
+
+From our student health study (n = 150):
+
+```python
+from scipy.stats import t
+import numpy as np
+
+def confidence_interval(data, confidence=0.95):
+    n = len(data)
+    mean = data.mean()
+    std = data.std(ddof=1)  # sample standard deviation
+    
+    # Critical value from t-distribution
+    alpha = 1 - confidence
+    t_crit = t.ppf(1 - alpha/2, df=n-1)
+    
+    # Margin of error
+    margin = t_crit * std / np.sqrt(n)
+    
+    return mean - margin, mean + margin
+
+# Calculate CI for sleep hours
+sleep_data = df['suenio_horas']
+lower, upper = confidence_interval(sleep_data, confidence=0.95)
+
+print(f"95% CI for mean sleep hours: [{lower:.2f}, {upper:.2f}]")
+# Result: [6.36, 6.75]
+```
+
+**Interpretation:** We are 95% confident that the true average sleep duration for all students in this population is between 6.36 and 6.75 hours per night.
+
+<Warning>
+**Clinical significance:** Notice the entire interval is below 7 hours - the recommended minimum for young adults. This suggests a systemic issue with student sleep habits that warrants intervention.
+</Warning>
+
+### Example 2: Stress Scores Confidence Interval
+
+```python
+# Confidence intervals at different levels
+stress_data = df['estres_score']
+
+for confidence_level in [0.90, 0.95, 0.99]:
+    lower, upper = confidence_interval(stress_data, confidence=confidence_level)
+    width = upper - lower
+    print(f"{int(confidence_level*100)}% CI: [{lower:.2f}, {upper:.2f}] (width={width:.2f})")
+```
+
+**Results:**
+```
+90% CI: [18.00, 19.71] (width=1.71)
+95% CI: [17.83, 19.87] (width=2.04)
+99% CI: [17.50, 20.20] (width=2.70)
+```
+
+**Observations:**
+
+1. Higher confidence level → wider interval
+2. This is the trade-off: more confidence requires more uncertainty (wider range)
+3. All intervals suggest mean stress is around 18-19 on the 0-40 scale
+
+<Accordion title="Why does the interval get wider with higher confidence?">
+Think about it intuitively: to be MORE confident you've captured the true value, you need to cast a WIDER net.
+
+- 90% confidence: willing to be wrong 10% of the time → narrower interval
+- 99% confidence: only willing to be wrong 1% of the time → must expand the interval
+
+Mathematically, higher confidence means a larger t* critical value, which increases the margin of error.
+</Accordion>
+
+### Effect of Sample Size on Confidence Intervals
+
+Let's compare confidence intervals with different sample sizes:
+
+```python
+import numpy as np
+
+np.random.seed(123)
+
+for n_sample in [30, 60, 150]:
+    sample = df['suenio_horas'].sample(n_sample, replace=False)
+    lower, upper = confidence_interval(sample, confidence=0.95)
+    width = upper - lower
+    print(f"n={n_sample}: 95% CI width = {width:.3f}")
+```
+
+**Results:**
+```
+n=30:  width = 0.863
+n=60:  width = 0.598
+n=150: width = 0.389
+```
+
+**Key Insight:** Larger samples produce narrower (more precise) confidence intervals. The width decreases proportionally to 1/√n.
+
+---
+
+## The Hypothesis Testing Framework
+
+### Step 1: State Hypotheses
+
+Every hypothesis test involves two competing statements:
+
+- **Null Hypothesis (H₀)**: The status quo or "no effect" hypothesis
+- **Alternative Hypothesis (H₁ or Hₐ)**: What we're trying to find evidence for
+
+<Note>
+**Structure of hypotheses:**
+
+**Null hypothesis (H₀):** Usually contains "="
+- H₀: μ = μ₀
+- H₀: μ₁ = μ₂
+- H₀: p = p₀
+
+**Alternative hypothesis (H₁):** What we want to show
+- H₁: μ ≠ μ₀ (two-sided)
+- H₁: μ < μ₀ (one-sided, left tail)
+- H₁: μ > μ₀ (one-sided, right tail)
+</Note>
+
+### Step 2: Choose Significance Level (α)
+
+- **α = 0.05** is most common (5% risk of Type I error)
+- More conservative: α = 0.01
+- Less conservative: α = 0.10
+
+### Step 3: Calculate Test Statistic
+
+The test statistic measures how many standard errors the sample estimate is from the null hypothesis value.
+
+### Step 4: Find P-value
+
+The p-value is the probability of obtaining results as extreme as observed, assuming H₀ is true.
+
+### Step 5: Make Decision
+
+- If **p-value < α**: Reject H₀ (statistically significant)
+- If **p-value ≥ α**: Fail to reject H₀ (not statistically significant)
+
+---
+
+## One-Sample T-Test
+
+Tests whether a population mean equals a specific value.
+
+### Example: Are Students Sleep Deprived?
+
+**Research Question:** Do students sleep less than the recommended 7 hours per night on average?
+
+**Hypotheses:**
+```
+H₀: μ = 7 (students get adequate sleep)
+H₁: μ < 7 (students are sleep deprived)
+```
+
+**Significance level:** α = 0.05
+
+```python
+from scipy.stats import ttest_1samp
+
+# Sample data
+sleep_hours = df['suenio_horas']
+n = len(sleep_hours)
+mean_sleep = sleep_hours.mean()  # 6.55
+std_sleep = sleep_hours.std(ddof=1)  # 1.21
+
+# Null hypothesis value
+mu_0 = 7
+
+# Calculate t-statistic
+t_stat = (mean_sleep - mu_0) / (std_sleep / np.sqrt(n))
+print(f"t-statistic: {t_stat:.3f}")
+# Result: t = -4.56
+
+# Calculate p-value (one-sided, left tail)
+from scipy.stats import t
+p_value = t.cdf(t_stat, df=n-1)
+print(f"p-value: {p_value:.6f}")
+# Result: p = 0.000005
+```
+
+**Decision:** p-value (0.000005) < α (0.05), so we **reject H₀**
+
+**Conclusion:** We have very strong evidence that university students sleep significantly less than 7 hours per night on average (mean = 6.55 hours, t(149) = -4.56, p < 0.001).
+
+<Warning>
+**Practical vs. Statistical Significance:**
+
+The difference (7.0 - 6.55 = 0.45 hours = 27 minutes) is statistically significant AND practically meaningful. Students are missing nearly half an hour of recommended sleep, which can significantly impact:
+- Cognitive function
+- Memory consolidation
+- Mood and mental health
+- Academic performance
+</Warning>
+
+---
+
+## Test for Proportions
+
+Tests whether a population proportion equals a specific value.
+
+### Example: Sleep Quality
+
+**Research Question:** Is good sleep quality rare among students? (less than 50%)
+
+**Hypotheses:**
+```
+H₀: p = 0.5 (50% have good sleep quality)
+H₁: p < 0.5 (fewer than 50% have good sleep quality)
+```
+
+```python
+from scipy.stats import norm
+
+# Count students with good sleep quality
+good_sleep = (df['calidad_suenio'] == 'buena').sum()  # 27 students
+n = len(df)  # 150
+p_hat = good_sleep / n  # 0.18 (18%)
+
+# Null hypothesis proportion
+p_0 = 0.5
+
+# Calculate z-statistic
+z_stat = (p_hat - p_0) / np.sqrt(p_0 * (1 - p_0) / n)
+print(f"z-statistic: {z_stat:.3f}")
+# Result: z = -7.84
+
+# Calculate p-value (left tail)
+p_value = norm.cdf(z_stat)
+print(f"p-value: {p_value:.10f}")
+# Result: p ≈ 0.0000000000
+```
+
+**Decision:** Reject H₀ (p < 0.05)
+
+**Conclusion:** Only 18% of students report good sleep quality - significantly less than 50% (z = -7.84, p < 0.001). This represents a major health concern requiring intervention.
+
+<Note>
+**When to use z vs. t:**
+
+- **Proportions**: Use z-test (normal approximation)
+- **Means with σ known**: Use z-test
+- **Means with σ unknown**: Use t-test (almost always in practice)
+
+For large samples (n ≥ 30), z and t distributions are very similar.
+</Note>
+
+---
+
+## Two-Sample T-Test
+
+Compares means between two independent groups.
+
+### Example: Physical Activity and Stress
+
+**Research Question:** Do students with high physical activity have lower stress than students with low activity?
+
+**Hypotheses:**
+```
+H₀: μ_high = μ_low (no difference in stress)
+H₁: μ_high < μ_low (high activity students have lower stress)
+```
+
+```python
+from scipy.stats import ttest_ind
+
+# Separate groups
+high_activity = df[df['nivel_actividad'] == 'alta']['estres_score']
+low_activity = df[df['nivel_actividad'] == 'baja']['estres_score']
+
+print(f"High activity: n={len(high_activity)}, mean={high_activity.mean():.2f}")
+print(f"Low activity:  n={len(low_activity)}, mean={low_activity.mean():.2f}")
+# High activity: n=26, mean=16.42
+# Low activity:  n=45, mean=20.94
+
+# Two-sample t-test (unequal variances)
+t_stat, p_value_two_sided = ttest_ind(high_activity, low_activity, equal_var=False)
+
+# Convert to one-sided test (H₁: μ_high < μ_low)
+if t_stat < 0:
+    p_value_one_sided = p_value_two_sided / 2
+else:
+    p_value_one_sided = 1 - p_value_two_sided / 2
+
+print(f"\nt-statistic: {t_stat:.3f}")
+print(f"p-value (two-sided): {p_value_two_sided:.4f}")
+print(f"p-value (one-sided): {p_value_one_sided:.4f}")
+# t = -3.15, p (one-sided) = 0.0014
+```
+
+**Decision:** Reject H₀ (p = 0.0014 < 0.05)
+
+**Conclusion:** Students with high physical activity report significantly lower stress levels (M = 16.42) compared to students with low activity (M = 20.94), t(69) = -3.15, p = 0.001.
+
+**Effect size:** The difference (20.94 - 16.42 = 4.52 points on a 0-40 scale) represents about a 22% reduction in stress.
+
+<Accordion title="One-sided vs. Two-sided Tests">
+**Two-sided test (H₁: μ₁ ≠ μ₂):**
+- Use when you want to detect ANY difference (either direction)
+- More conservative (harder to reject H₀)
+- Reports if groups differ, without specifying direction
+
+**One-sided test (H₁: μ₁ < μ₂ or H₁: μ₁ > μ₂):**
+- Use when you have a specific directional hypothesis
+- Based on theory, prior research, or research design
+- More powerful for detecting effects in the predicted direction
+- Should be decided BEFORE looking at the data
+
+**In our example:** We hypothesized physical activity REDUCES stress (directional), so a one-sided test is appropriate.
+</Accordion>
+
+---
+
+## Understanding P-Values
+
+The p-value is one of the most misunderstood concepts in statistics.
+
+### What P-Value Actually Means
+
+<Note>
+**P-value definition:**
+
+The probability of observing data as extreme as what we obtained (or more extreme), **assuming the null hypothesis is true**.
+
+**P-value does NOT tell you:**
+- ❌ The probability that H₀ is true
+- ❌ The probability that H₁ is true
+- ❌ The size or importance of an effect
+- ❌ Whether results are practically meaningful
+
+**P-value DOES tell you:**
+- ✓ How compatible your data is with H₀
+- ✓ Whether results are statistically significant at α level
+- ✓ The strength of evidence against H₀ (smaller p = stronger evidence)
+</Note>
+
+### Interpreting Different P-Values
+
+| P-value Range | Interpretation | Evidence Against H₀ |
+|---------------|----------------|---------------------|
+| p > 0.10 | Not significant | Little to none |
+| 0.05 < p ≤ 0.10 | Marginally significant | Weak |
+| 0.01 < p ≤ 0.05 | Significant | Moderate |
+| 0.001 < p ≤ 0.01 | Very significant | Strong |
+| p ≤ 0.001 | Highly significant | Very strong |
+
+<Warning>
+**The "p < 0.05" threshold is arbitrary!**
+
+The 0.05 cutoff is a convention, not a law of nature. Important considerations:
+
+- **p = 0.049** is not fundamentally different from **p = 0.051**
+- Context matters: medical decisions might require p < 0.01
+- Effect size and practical significance matter more than p-values
+- **Avoid "p-hacking"**: testing multiple ways until p < 0.05
+</Warning>
+
+### Example: Comparing Evidence Strength
+
+From our three hypothesis tests:
+
+1. **Sleep < 7 hours:** p < 0.000001 → Very strong evidence
+2. **Good sleep quality < 50%:** p < 0.000001 → Very strong evidence
+3. **High activity = lower stress:** p = 0.0014 → Strong evidence
+
+All three show compelling evidence for the alternative hypothesis, but the sleep tests show even stronger evidence.
+
+---
+
+## Type I and Type II Errors
+
+Hypothesis testing involves uncertainty, which means we can make errors.
+
+### The Two Types of Errors
+
+|  | **H₀ is Actually True** | **H₀ is Actually False** |
+|---|---|---|
+| **Reject H₀** | ❌ **Type I Error** (False Positive) - Probability = α | ✓ Correct Decision - Probability = 1 - β (Power) |
+| **Fail to Reject H₀** | ✓ Correct Decision - Probability = 1 - α | ❌ **Type II Error** (False Negative) - Probability = β |
+
+### Type I Error (α)
+
+**Definition:** Rejecting H₀ when it's actually true (false positive)
+
+**Example - Sleep Study:**
+- **Truth:** Students actually DO sleep 7+ hours on average
+- **Our conclusion:** We conclude they sleep less than 7 hours
+- **Consequence:** Implement expensive sleep programs unnecessarily
+
+**Probability:** α = significance level (usually 0.05)
+
+We CONTROL Type I error by choosing α before the study.
+
+### Type II Error (β)
+
+**Definition:** Failing to reject H₀ when it's actually false (false negative)
+
+**Example - Physical Activity Study:**
+- **Truth:** High activity DOES reduce stress
+- **Our conclusion:** We fail to find significant evidence
+- **Consequence:** Don't implement beneficial activity programs
+
+**Probability:** β (depends on effect size, sample size, α)
+
+**Power = 1 - β** = Probability of correctly rejecting false H₀
+
+<Accordion title="The Trade-off Between Type I and Type II Errors">
+There's an inherent trade-off:
+
+**If you decrease α (Type I error):**
+- Harder to reject H₀ (more conservative)
+- Increased β (Type II error)
+- Less likely to detect true effects
+
+**If you increase α:**
+- Easier to reject H₀
+- Decreased β (Type II error)  
+- More likely to detect true effects
+- But more false positives
+
+**Solution:** Increase sample size (n)
+- Can decrease BOTH error types
+- More expensive/time-consuming
+- This is why power analysis guides sample size planning
+</Accordion>
+
+### Contextualizing Errors in Student Health
+
+#### Type I Error Example: Sleep Intervention
+
+**Scenario:** We conclude students are sleep deprived (reject H₀: μ = 7) when they're actually not.
+
+**Consequences:**
+- Waste resources on unnecessary sleep programs
+- Divert attention from real problems
+- Possibly create anxiety about sleep when unnecessary
+
+**Severity:** Moderate - wastes resources but doesn't harm students
+
+#### Type II Error Example: Missing Stress-Activity Link
+
+**Scenario:** We fail to detect that exercise reduces stress (fail to reject H₀) when it actually does.
+
+**Consequences:**
+- Don't implement physical activity programs
+- Students continue suffering from high stress
+- Miss opportunity to improve mental health and academic performance
+
+**Severity:** High - students miss beneficial intervention
+
+<Warning>
+**Which error is worse?**
+
+It depends on the context:
+
+**Medical screening:** Type II error (missing disease) is often worse
+- Better to have false positives than miss serious conditions
+- Set α = 0.10 (more liberal)
+
+**Criminal justice:** Type I error (convicting innocent) is worse
+- "Innocent until proven guilty"
+- Require very strong evidence (α = 0.01 or lower)
+
+**Our student health study:** Both errors have consequences
+- Type I: Waste resources
+- Type II: Miss helping students
+- α = 0.05 is reasonable balance
+</Warning>
+
+---
+
+## Complete Hypothesis Test Example
+
+Let's walk through a complete analysis combining everything we've learned.
+
+### Research Question
+
+**Do students with healthy nutrition (score ≥ 7) have better academic performance than those with poor nutrition (score &lt; 7)?**
+
+### Step 1: Formulate Hypotheses
+
+```
+H₀: μ_healthy = μ_poor (no difference in grades)
+H₁: μ_healthy > μ_poor (healthy nutrition improves grades)
+```
+
+### Step 2: Choose α
+
+α = 0.05 (standard for educational research)
+
+### Step 3: Check Assumptions
+
+```python
+# Separate groups
+healthy_nutrition = df[df['alimentacion_score'] >= 7]['promedio_notas']
+poor_nutrition = df[df['alimentacion_score'] < 7]['promedio_notas']
+
+# Check normality (visual)
+import matplotlib.pyplot as plt
+fig, axes = plt.subplots(1, 2, figsize=(12, 4))
+axes[0].hist(healthy_nutrition, bins=15, edgecolor='black')
+axes[0].set_title('Healthy Nutrition Group')
+axes[1].hist(poor_nutrition, bins=15, edgecolor='black')
+axes[1].set_title('Poor Nutrition Group')
+plt.show()
+
+# Both look approximately normal ✓
+```
+
+### Step 4: Descriptive Statistics
+
+```python
+print("Healthy Nutrition Group (score ≥ 7):")
+print(f"  n = {len(healthy_nutrition)}")
+print(f"  Mean = {healthy_nutrition.mean():.2f}")
+print(f"  SD = {healthy_nutrition.std(ddof=1):.2f}")
+
+print("\nPoor Nutrition Group (score &lt; 7):")
+print(f"  n = {len(poor_nutrition)}")
+print(f"  Mean = {poor_nutrition.mean():.2f}")
+print(f"  SD = {poor_nutrition.std(ddof=1):.2f}")
+```
+
+### Step 5: Conduct Test
+
+```python
+from scipy.stats import ttest_ind
+
+t_stat, p_value_two = ttest_ind(healthy_nutrition, poor_nutrition, equal_var=False)
+
+# One-sided test (healthy > poor)
+if t_stat > 0:
+    p_value = p_value_two / 2
+else:
+    p_value = 1 - p_value_two / 2
+
+print(f"\nTest Results:")
+print(f"  t-statistic: {t_stat:.3f}")
+print(f"  p-value (one-sided): {p_value:.4f}")
+```
+
+### Step 6: Make Decision
+
+```python
+if p_value < 0.05:
+    print(f"\nDecision: Reject H₀ (p = {p_value:.4f} < 0.05)")
+    print("Conclusion: Students with healthy nutrition have significantly higher grades.")
+else:
+    print(f"\nDecision: Fail to reject H₀ (p = {p_value:.4f} ≥ 0.05)")
+    print("Conclusion: No significant evidence that nutrition affects grades.")
+```
+
+### Step 7: Calculate Effect Size
+
+```python
+# Cohen's d: standardized mean difference
+mean_diff = healthy_nutrition.mean() - poor_nutrition.mean()
+pooled_std = np.sqrt((healthy_nutrition.var(ddof=1) + poor_nutrition.var(ddof=1)) / 2)
+cohens_d = mean_diff / pooled_std
+
+print(f"\nEffect Size:")
+print(f"  Raw difference: {mean_diff:.2f} points")
+print(f"  Cohen's d: {cohens_d:.3f}")
+
+# Interpret Cohen's d
+if abs(cohens_d) < 0.2:
+    interpretation = "negligible"
+elif abs(cohens_d) < 0.5:
+    interpretation = "small"
+elif abs(cohens_d) < 0.8:
+    interpretation = "medium"
+else:
+    interpretation = "large"
+    
+print(f"  Interpretation: {interpretation} effect")
+```
+
+### Step 8: Report Results
+
+**Example write-up:**
+
+"We conducted an independent samples t-test to compare academic performance between students with healthy nutrition (score ≥ 7, n=59, M=7.18, SD=0.89) and poor nutrition (score &lt; 7, n=91, M=6.95, SD=0.94). Students with healthy nutrition scored significantly higher, t(148)=1.53, p = 0.064, though the effect was small (Cohen's d=0.25)."
+
+<Note>
+**Complete reporting includes:**
+- Test used and why
+- Descriptive statistics for each group (n, M, SD)
+- Test statistic value and degrees of freedom
+- P-value
+- Effect size
+- Interpretation in context
+</Note>
+
+---
+
+## Statistical Significance vs. Practical Significance
+
+A result can be:
+- **Statistically significant but practically trivial**
+- **Practically important but not statistically significant**
+
+### Example: Large Sample Paradox
+
+With n=10,000 students, a 0.1-hour difference in sleep might be statistically significant (p &lt; 0.05) but practically meaningless - 6 minutes is negligible.
+
+### Example: Small Sample Problem
+
+With n=15 students, a 1.0-hour difference might not reach statistical significance (p = 0.08) but could be very important practically.
+
+<Warning>
+**Always consider both:**
+
+1. **Statistical significance** (p-value)
+   - Is the effect real or due to chance?
+
+2. **Practical significance** (effect size, context)
+   - Is the effect large enough to matter?
+   - Cost-benefit of interventions
+   - Clinical or educational importance
+
+**Best practice:** Report BOTH p-values and effect sizes (Cohen's d, confidence intervals for differences).
+</Warning>
+
+---
+
+## Common Mistakes and How to Avoid Them
+
+### 1. Confusing "Not Significant" with "No Effect"
+
+❌ **Wrong:** "We found no effect of exercise on stress (p = 0.12)"
+
+✓ **Right:** "We found no statistically significant evidence that exercise reduces stress (p = 0.12), though the observed difference was in the expected direction. A larger sample size may be needed."
+
+### 2. Multiple Testing Problem
+
+If you test 20 hypotheses at α=0.05, you expect 1 false positive by chance alone!
+
+**Solution:** Use corrections like:
+- Bonferroni correction (α/number of tests)
+- False Discovery Rate control
+- Pre-registered primary outcomes
+
+### 3. Stopping When You Get p &lt; 0.05
+
+❌ **P-hacking:** Keep collecting data and testing until p &lt; 0.05
+
+✓ **Right:** Determine sample size beforehand (power analysis) and collect all data before testing
+
+### 4. Interpreting P-Values as Effect Size
+
+p = 0.001 doesn't mean a "bigger effect" than p = 0.04 - it means stronger evidence, often due to larger sample size!
+
+---
+
+## Key Takeaways
+
+1. **Confidence intervals** quantify uncertainty in parameter estimates
+   - 95% CI means the procedure captures the true value 95% of the time
+   - Wider CI = more uncertainty; narrower CI = more precision
+   - Width decreases with larger samples
+
+2. **Hypothesis testing** provides a framework for making decisions
+   - State H₀ and H₁ before analyzing data
+   - Choose α (usually 0.05)
+   - Calculate test statistic and p-value
+   - Make decision: reject or fail to reject H₀
+
+3. **P-values** measure evidence against H₀
+   - NOT the probability H₀ is true
+   - NOT the importance of an effect
+   - Smaller p = stronger evidence against H₀
+
+4. **Two types of errors:**
+   - Type I (α): False positive - rejecting true H₀
+   - Type II (β): False negative - failing to reject false H₀
+   - Trade-off between them; both decrease with larger n
+
+5. **Context is crucial:**
+   - Statistical significance ≠ practical significance
+   - Report effect sizes, not just p-values
+   - Consider costs and benefits of errors
+   - Interpret findings in light of research question
+
+## Real-World Applications
+
+Our student health study demonstrates how hypothesis testing informs policy:
+
+1. **Sleep intervention needed:** Strong evidence (p &lt; 0.001) students are sleep-deprived
+   - Policy: Limit early classes, educate on sleep hygiene
+
+2. **Promote physical activity:** Evidence (p = 0.0014) it reduces stress
+   - Policy: Subsidize gym memberships, create campus rec programs
+
+3. **Nutrition programs:** Weak evidence (p = 0.064) for grade improvement
+   - Policy: More research needed before major investment
+
+<Note>
+**Statistical thinking in action:**
+
+These analyses transformed raw data into actionable insights. The same framework applies to:
+- Medical research (drug efficacy)
+- A/B testing (website conversion rates)
+- Quality control (manufacturing defects)
+- Policy evaluation (program effectiveness)
+- Social science (behavior interventions)
+</Note>
+
+## Next Steps in Your Statistical Journey
+
+You now have the core tools for statistical inference! To go further:
+
+1. **Learn more advanced tests:**
+   - ANOVA (comparing 3+ groups)
+   - Chi-square tests (categorical data)
+   - Regression analysis (multiple predictors)
+   - Non-parametric tests (when assumptions violated)
+
+2. **Dive deeper into study design:**
+   - Experimental vs. observational studies
+   - Controlling for confounding variables
+   - Power analysis and sample size planning
+
+3. **Explore modern approaches:**
+   - Bootstrap methods
+   - Bayesian inference
+   - Machine learning vs. traditional statistics
+
+4. **Practice with real data:**
+   - Replicate published studies
+   - Analyze datasets in your field
+   - Collaborate on research projects
+
+## Practice Exercises
+
+1. Calculate 90%, 95%, and 99% confidence intervals for academic averages
+2. Test whether students with good sleep quality have lower stress (use appropriate test)
+3. Compare grades between low, moderate, and high physical activity groups (requires ANOVA, but try with t-tests first)
+4. Calculate the probability of Type II error for the sleep test (assume true μ=6.8 hours)
+5. Write a complete results section reporting one of the hypothesis tests
+
+---
+
+**Congratulations!** You've completed the Statistical Inference module. You now understand how to move from data to conclusions with quantified uncertainty - a critical skill for data-driven decision making.

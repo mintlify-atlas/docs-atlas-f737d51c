@@ -1,0 +1,455 @@
+---
+title: 'Probability Distributions'
+description: 'Explore normal, binomial, and Poisson distributions with the Central Limit Theorem using real health data'
+---
+
+# Probability Distributions
+
+Probability distributions are mathematical models that describe how probabilities are distributed across the possible values of a random variable. Understanding distributions is essential for statistical inference.
+
+## Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+- Identify common probability distributions in real data
+- Work with the normal distribution and calculate probabilities
+- Understand discrete distributions (binomial, Poisson)
+- Apply the Central Limit Theorem to sampling distributions
+- Visualize and interpret distribution properties
+
+## Types of Distributions
+
+### Continuous Distributions
+
+For continuous random variables (can take any value in a range)
+
+### Discrete Distributions
+
+For discrete random variables (specific countable values)
+
+<Note>
+In our student health study, we have examples of both types:
+- **Continuous**: sleep hours, stress score, academic average
+- **Discrete**: age, nutrition score, activity level
+</Note>
+
+---
+
+## The Normal Distribution
+
+The **normal distribution** (or Gaussian distribution) is the most important probability distribution in statistics.
+
+### Key Properties
+
+- **Bell-shaped** and symmetric around the mean
+- Characterized by two parameters:
+  - **μ (mu)**: the mean (center of the distribution)
+  - **σ (sigma)**: the standard deviation (spread)
+- Notation: X ~ Normal(μ, σ)
+
+### Example: Sleep Hours Distribution
+
+From our student health dataset of 150 students:
+
+```python
+# Sleep hours statistics
+mean_sleep = 6.55 hours
+std_sleep = 1.21 hours
+```
+
+We can model this as: **Sleep Hours ~ Normal(6.55, 1.21)**
+
+<Warning>
+Notice the mean (6.55 hours) is below the recommended 7-8 hours, suggesting many students are sleep-deprived. This has implications for academic performance and well-being.
+</Warning>
+
+### Calculating Probabilities with Normal Distribution
+
+#### Example 1: Probability of adequate sleep
+
+**Question:** What's the probability a randomly selected student sleeps at least 7 hours?
+
+```python
+from scipy.stats import norm
+
+mu = 6.55
+sigma = 1.21
+
+# P(X >= 7)
+prob = 1 - norm.cdf(7, loc=mu, scale=sigma)
+print(f"P(Sleep >= 7h) = {prob:.3f}")
+# Result: 0.355 (35.5%)
+```
+
+**Interpretation:** Only about 35% of students get the recommended minimum sleep.
+
+#### Example 2: Probability within a range
+
+**Question:** What's the probability a student sleeps between 5 and 8 hours?
+
+```python
+# P(5 <= X <= 8)
+prob_range = norm.cdf(8, loc=mu, scale=sigma) - norm.cdf(5, loc=mu, scale=sigma)
+print(f"P(5 <= Sleep <= 8) = {prob_range:.3f}")
+# Result: 0.786 (78.6%)
+```
+
+### Visualizing the Normal Distribution
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Histogram with normal curve overlay
+sns.histplot(data=df['suenio_horas'], kde=True, stat='density')
+plt.axvline(x=7, color='red', linestyle='--', label='Recommended minimum')
+plt.xlabel('Sleep Hours per Night')
+plt.title('Distribution of Sleep Hours')
+plt.legend()
+plt.show()
+```
+
+<Accordion title="Why does sleep follow a normal distribution?">
+Many biological and behavioral variables follow approximately normal distributions due to the combined effect of many small, independent factors. Sleep duration is influenced by:
+- Individual biological needs
+- Academic workload
+- Social activities
+- Personal habits
+- Environmental factors
+
+When many independent factors combine, the result tends toward a normal distribution (Central Limit Theorem).
+</Accordion>
+
+---
+
+## Discrete Distributions
+
+### The Binomial Distribution
+
+The binomial distribution models the number of successes in a fixed number of independent trials.
+
+**Parameters:**
+- **n**: number of trials
+- **p**: probability of success on each trial
+
+**Notation:** X ~ Binomial(n, p)
+
+#### Example: Nutrition Habits
+
+Suppose we measure 10 different healthy eating behaviors (eating vegetables, avoiding fast food, breakfast regularly, etc.).
+
+- Each behavior is a "trial" (n = 10)
+- Each student has some probability of following each behavior (p ≈ 0.5)
+- **Nutrition score** = number of healthy behaviors followed
+
+**Question:** What's the probability a student has a healthy nutrition score (≥7 behaviors)?
+
+```python
+from scipy.stats import binom
+
+n_behaviors = 10
+p_success = 0.5
+
+# P(X >= 7) = P(7) + P(8) + P(9) + P(10)
+prob_healthy = sum(binom.pmf(k, n_behaviors, p_success) for k in range(7, 11))
+print(f"P(Score >= 7) = {prob_healthy:.3f}")
+# Result: 0.172 (17.2%)
+```
+
+**Interpretation:** If each healthy behavior has a 50% probability, only about 17% of students would achieve 7+ healthy behaviors.
+
+<Note>
+**Real data vs. theoretical model:** In our simulated dataset, 39.3% of students have nutrition score ≥7. This difference suggests the real probability per behavior might be higher than 0.5, or behaviors aren't independent.
+</Note>
+
+### When to Use Binomial Distribution
+
+Use binomial when:
+- Fixed number of trials (n)
+- Each trial has two outcomes (success/failure)
+- Trials are independent
+- Probability of success (p) is constant
+
+**Examples:**
+- Number of days per week a student exercises (n=7 days)
+- Number of healthy meals in a day (n=3 meals)
+- Survey responses (n=20 questions, yes/no answers)
+
+### The Poisson Distribution
+
+The Poisson distribution models the number of events occurring in a fixed interval of time or space.
+
+**Parameter:**
+- **λ (lambda)**: average rate of events
+
+**Notation:** X ~ Poisson(λ)
+
+#### Example: Study Break Frequency
+
+Suppose students take study breaks at an average rate of λ=3 breaks per study session.
+
+```python
+from scipy.stats import poisson
+
+lambda_breaks = 3
+
+# P(exactly 5 breaks)
+prob_5 = poisson.pmf(5, lambda_breaks)
+print(f"P(5 breaks) = {prob_5:.3f}")
+
+# P(at most 2 breaks)
+prob_at_most_2 = poisson.cdf(2, lambda_breaks)
+print(f"P(<= 2 breaks) = {prob_at_most_2:.3f}")
+```
+
+### When to Use Poisson Distribution
+
+Use Poisson when counting:
+- Events per unit time (emails per hour, visits per day)
+- Events per unit space (typos per page, bacteria per sample)
+- Rare events with many opportunities
+
+---
+
+## The Central Limit Theorem (CLT)
+
+The Central Limit Theorem is one of the most important concepts in statistics.
+
+### The Theorem
+
+<Note>
+**Central Limit Theorem:** When you take repeated random samples from ANY population and calculate the sample mean each time:
+
+1. The distribution of those sample means approaches a normal distribution
+2. The mean of the sample means equals the population mean (μ)
+3. The standard deviation of sample means = σ/√n (standard error)
+
+**This happens even if the original population is NOT normally distributed!**
+</Note>
+
+### Why This Matters
+
+The CLT is why we can:
+- Use normal distribution theory for inference
+- Calculate confidence intervals
+- Perform hypothesis tests
+- Make predictions about populations from samples
+
+### Simulation: Demonstrating the CLT
+
+Let's simulate the sampling distribution of mean sleep hours.
+
+**Process:**
+1. Take a random sample of n students
+2. Calculate the mean sleep hours for that sample
+3. Repeat 1000 times
+4. Plot the distribution of those 1000 sample means
+
+```python
+import numpy as np
+
+def sampling_distribution(data, sample_size, n_samples=1000):
+    sample_means = []
+    for _ in range(n_samples):
+        sample = np.random.choice(data, size=sample_size, replace=True)
+        sample_means.append(sample.mean())
+    return np.array(sample_means)
+
+# Generate sampling distributions for different sample sizes
+sleep_data = df['suenio_horas']
+
+means_n10 = sampling_distribution(sleep_data, sample_size=10)
+means_n30 = sampling_distribution(sleep_data, sample_size=30)
+means_n50 = sampling_distribution(sleep_data, sample_size=50)
+```
+
+### Results: Effect of Sample Size
+
+| Sample Size | Mean of Means | Std Dev of Means |
+|-------------|---------------|------------------|
+| n = 10 | 6.52 | 0.372 |
+| n = 30 | 6.56 | 0.219 |
+| n = 50 | 6.55 | 0.169 |
+
+**Observations:**
+
+1. **Mean stays constant** (~6.55) regardless of sample size
+   - Sample mean is an unbiased estimator of population mean
+
+2. **Standard deviation decreases** as sample size increases
+   - Larger samples give more precise estimates
+   - Follows the formula: SE = σ/√n
+
+3. **Shape becomes more normal** as n increases
+   - Even with n=10, the distribution looks fairly normal
+   - By n=30, it's very close to normal
+
+<Warning>
+**The "n ≥ 30" Rule:** Traditionally, statisticians say you need at least 30 observations for the CLT to apply. However:
+- If the original population is already normal, CLT works with smaller n
+- If the population is very skewed, you might need n > 30
+- Modern bootstrap methods can help with small samples
+</Warning>
+
+### Visualizing the Central Limit Theorem
+
+```python
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 4))
+
+for ax, means, n in zip(axes, 
+                        [means_n10, means_n30, means_n50],
+                        [10, 30, 50]):
+    sns.histplot(means, kde=True, ax=ax)
+    ax.axvline(means.mean(), color='red', linestyle='--', 
+               label=f'Mean={means.mean():.2f}')
+    ax.set_title(f'Sampling Distribution (n={n})')
+    ax.set_xlabel('Sample Mean Sleep Hours')
+    ax.legend()
+
+plt.tight_layout()
+plt.show()
+```
+
+**Key Insight:** Notice how the distribution becomes tighter (less variable) and more bell-shaped as sample size increases. This is the CLT in action!
+
+---
+
+## Applying Distributions to Research Questions
+
+### Example: Stress Levels
+
+From our dataset, stress scores approximately follow:
+- **Stress Score ~ Normal(18.85, 7.03)**
+
+**Research Question:** What proportion of students have high stress (score > 25)?
+
+```python
+mu_stress = 18.85
+sigma_stress = 7.03
+
+prob_high_stress = 1 - norm.cdf(25, loc=mu_stress, scale=sigma_stress)
+print(f"P(Stress > 25) = {prob_high_stress:.3f}")
+# Result: ~0.19 (19%)
+```
+
+**Interpretation:** About 1 in 5 students experiences high stress levels. This might warrant mental health support programs.
+
+<Accordion title="What if the distribution isn't normal?">
+Many real-world variables aren't perfectly normal. Options include:
+
+1. **Transform the data** (log, square root) to make it more normal
+2. **Use non-parametric methods** that don't assume normality
+3. **Rely on the Central Limit Theorem** for sample means (works even if population isn't normal)
+4. **Use the actual empirical distribution** from your sample
+
+For our student health study, most continuous variables (sleep, stress, grades) are approximately normal enough for standard methods.
+</Accordion>
+
+---
+
+## Standard Error and Sampling Distributions
+
+The **standard error** (SE) measures how much sample means vary from sample to sample.
+
+```
+SE = σ / √n
+
+Where:
+- σ = population standard deviation
+- n = sample size
+```
+
+### Example Calculation
+
+For sleep hours with σ = 1.21:
+
+| Sample Size | Standard Error |
+|-------------|----------------|
+| n = 10 | 1.21/√10 = 0.38 |
+| n = 30 | 1.21/√30 = 0.22 |
+| n = 50 | 1.21/√50 = 0.17 |
+| n = 100 | 1.21/√100 = 0.12 |
+
+**Insight:** To cut the standard error in half, you need to quadruple the sample size (because of the √n in the denominator).
+
+<Note>
+**Why standard error matters:**
+- Smaller SE = more precise estimates
+- SE is used to calculate confidence intervals
+- SE determines the width of hypothesis test regions
+- SE appears in formulas for t-tests, z-tests, etc.
+</Note>
+
+---
+
+## Checking Distribution Assumptions
+
+### Visual Methods
+
+1. **Histogram with density curve**
+   - Does the shape look normal (bell-shaped)?
+   - Are there outliers or multiple peaks?
+
+2. **Q-Q plot** (Quantile-Quantile plot)
+   - Points should fall on a straight line for normal data
+   - Deviations indicate non-normality
+
+```python
+from scipy import stats
+import matplotlib.pyplot as plt
+
+# Q-Q plot for sleep hours
+stats.probplot(df['suenio_horas'], dist="norm", plot=plt)
+plt.title('Q-Q Plot: Sleep Hours')
+plt.show()
+```
+
+### Statistical Tests
+
+- **Shapiro-Wilk test**: Tests if data comes from a normal distribution
+- **Anderson-Darling test**: Another normality test
+- **Kolmogorov-Smirnov test**: General goodness-of-fit test
+
+<Warning>
+**Important caveat:** With large samples, these tests often reject normality even when the deviation is practically insignificant. Visual inspection and understanding your data are often more useful than formal tests.
+</Warning>
+
+---
+
+## Key Takeaways
+
+1. **Normal distribution** is central to statistical inference - characterized by mean (μ) and standard deviation (σ)
+
+2. **Binomial distribution** models count of successes in fixed trials
+
+3. **Poisson distribution** models rare events or counts per interval
+
+4. **Central Limit Theorem** explains why normal distribution is so important:
+   - Sample means are approximately normal, regardless of population distribution
+   - Larger samples produce more normal distributions with less variability
+
+5. **Standard error** quantifies precision of sample means and decreases with √n
+
+6. **Real data** (like our student health study) often approximates theoretical distributions
+
+## Next Steps
+
+Now that you understand probability distributions and the Central Limit Theorem, you're ready for **hypothesis testing** - using sample data to make decisions about population parameters.
+
+<Note>
+In the next module, we'll use these distribution concepts to:
+- Build confidence intervals for population means
+- Test hypotheses (Is average sleep really less than 7 hours?)
+- Compare groups (Does exercise reduce stress?)
+- Interpret p-values and statistical significance
+</Note>
+
+## Practice Exercises
+
+1. Calculate the probability that stress score is between 15 and 25
+2. Create a Q-Q plot for academic averages
+3. Simulate the sampling distribution for nutrition scores
+4. Compare the spread of sampling distributions for n=20 vs n=80

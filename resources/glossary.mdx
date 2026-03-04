@@ -1,0 +1,1127 @@
+---
+title: 'Data Science Glossary'
+description: 'Comprehensive glossary of data science terms used throughout the bootcamp'
+icon: 'book-open'
+---
+
+## Overview
+
+This glossary defines key terms and concepts used throughout the Data Science Bootcamp. Terms are organized alphabetically for quick reference.
+
+<Tip>
+  Use `Ctrl+F` (or `Cmd+F` on Mac) to quickly search for specific terms.
+</Tip>
+
+## A
+
+<AccordionGroup>
+  <Accordion title="Activation Function">
+    A mathematical function applied to a neuron's output in a neural network.
+    
+    **Purpose:** Introduces non-linearity, enabling networks to learn complex patterns.
+    
+    **Common Types:**
+    - **ReLU** (Rectified Linear Unit): `f(x) = max(0, x)`
+    - **Sigmoid**: `f(x) = 1 / (1 + e^(-x))`
+    - **Tanh**: `f(x) = tanh(x)`
+    - **Softmax**: Used for multi-class classification output
+    
+    **Module:** A8 (Deep Learning)
+  </Accordion>
+  
+  <Accordion title="Algorithm">
+    A step-by-step procedure for solving a problem or performing a computation.
+    
+    **In Data Science:** Algorithms process data to learn patterns (machine learning algorithms) or perform calculations (sorting, searching algorithms).
+    
+    **Examples:** Linear regression, decision trees, K-means clustering
+    
+    **Modules:** A5-A8
+  </Accordion>
+  
+  <Accordion title="Array">
+    A data structure that holds multiple values of the same type in a grid-like structure.
+    
+    **In NumPy:** An n-dimensional array (ndarray) is the fundamental data structure.
+    
+    **Example:**
+    ```python
+    import numpy as np
+    arr = np.array([1, 2, 3, 4, 5])  # 1D array
+    matrix = np.array([[1, 2], [3, 4]])  # 2D array
+    ```
+    
+    **Properties:** Shape, dtype (data type), size
+    
+    **Module:** A3 (NumPy)
+  </Accordion>
+</AccordionGroup>
+
+## B
+
+<AccordionGroup>
+  <Accordion title="Backpropagation">
+    The algorithm used to calculate gradients in neural networks for updating weights.
+    
+    **Process:** Computes the gradient of the loss function with respect to each weight by applying the chain rule, propagating errors backwards through the network.
+    
+    **Purpose:** Enables neural networks to learn from mistakes
+    
+    **Module:** A8 (Deep Learning)
+  </Accordion>
+  
+  <Accordion title="Batch Size">
+    The number of training samples processed before updating model parameters.
+    
+    **Trade-offs:**
+    - **Large batch:** Faster training, more memory, less noise
+    - **Small batch:** Slower training, less memory, more exploration
+    
+    **Common Values:** 32, 64, 128, 256
+    
+    **Module:** A8 (Deep Learning)
+  </Accordion>
+  
+  <Accordion title="Bias (Statistical)">
+    Systematic error that causes predictions to consistently deviate from true values.
+    
+    **Example:** A model trained only on data from one demographic might be biased against others.
+    
+    **Related:** Bias-Variance Tradeoff
+    
+    **Modules:** A6-A7
+  </Accordion>
+  
+  <Accordion title="Bias (Neural Network)">
+    An additional parameter in neural network layers that shifts the activation function.
+    
+    **Formula:** `output = weights * input + bias`
+    
+    **Purpose:** Allows the model to fit data that doesn't pass through the origin
+    
+    **Module:** A8
+  </Accordion>
+  
+  <Accordion title="Broadcasting">
+    NumPy's mechanism for performing operations on arrays of different shapes.
+    
+    **Example:**
+    ```python
+    import numpy as np
+    arr = np.array([1, 2, 3])
+    result = arr + 10  # Adds 10 to each element
+    # Result: [11, 12, 13]
+    ```
+    
+    **Module:** A3 (NumPy)
+  </Accordion>
+</AccordionGroup>
+
+## C
+
+<AccordionGroup>
+  <Accordion title="Classification">
+    A supervised learning task where the goal is to predict discrete categories or classes.
+    
+    **Types:**
+    - **Binary:** Two classes (e.g., spam/not spam)
+    - **Multiclass:** More than two classes (e.g., image classification)
+    
+    **Algorithms:** Logistic regression, KNN, decision trees, neural networks
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="Clustering">
+    An unsupervised learning technique that groups similar data points together.
+    
+    **Common Algorithms:**
+    - **K-Means:** Partitions data into K clusters
+    - **Hierarchical:** Creates a tree of clusters
+    - **DBSCAN:** Density-based clustering
+    
+    **Use Cases:** Customer segmentation, anomaly detection, data exploration
+    
+    **Module:** A7 (Advanced ML)
+  </Accordion>
+  
+  <Accordion title="Confusion Matrix">
+    A table showing the performance of a classification model.
+    
+    **Structure:**
+    ```
+                Predicted
+              Pos    Neg
+    Actual Pos  TP     FN
+           Neg  FP     TN
+    ```
+    
+    - **TP** (True Positive): Correctly predicted positive
+    - **TN** (True Negative): Correctly predicted negative
+    - **FP** (False Positive): Incorrectly predicted positive (Type I error)
+    - **FN** (False Negative): Incorrectly predicted negative (Type II error)
+    
+    **Derived Metrics:** Accuracy, precision, recall, F1-score
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Cross-Validation">
+    A technique for assessing model performance by splitting data into multiple train/test sets.
+    
+    **K-Fold Cross-Validation:**
+    1. Split data into K equal parts (folds)
+    2. Train on K-1 folds, test on the remaining fold
+    3. Repeat K times, using each fold as test set once
+    4. Average the results
+    
+    **Purpose:** Provides more reliable performance estimates, reduces overfitting
+    
+    **Common Value:** K=5 or K=10
+    
+    **Module:** A6 (Machine Learning)
+  </Accordion>
+</AccordionGroup>
+
+## D
+
+<AccordionGroup>
+  <Accordion title="DataFrame">
+    Pandas' primary data structure: a 2-dimensional labeled table with columns of potentially different types.
+    
+    **Key Features:**
+    - Row and column labels (index)
+    - Heterogeneous data types
+    - Built-in methods for data manipulation
+    - Easy filtering, grouping, and aggregation
+    
+    **Example:**
+    ```python
+    import pandas as pd
+    df = pd.DataFrame({
+        'name': ['Alice', 'Bob', 'Charlie'],
+        'age': [25, 30, 35],
+        'city': ['NYC', 'LA', 'Chicago']
+    })
+    ```
+    
+    **Module:** A3 (Primary focus), used throughout A4-A8
+  </Accordion>
+  
+  <Accordion title="Data Augmentation">
+    Techniques to artificially increase training data by creating modified versions of existing data.
+    
+    **For Images:** Rotation, flipping, cropping, color adjustment
+    
+    **Purpose:** Reduces overfitting, improves model generalization
+    
+    **Module:** A8 (Deep Learning)
+  </Accordion>
+  
+  <Accordion title="Data Cleaning">
+    The process of detecting and correcting (or removing) corrupt or inaccurate data.
+    
+    **Common Tasks:**
+    - Handling missing values
+    - Removing duplicates
+    - Correcting data types
+    - Fixing inconsistencies
+    - Removing outliers
+    
+    **Module:** A3 (Primary), A4-A6
+  </Accordion>
+  
+  <Accordion title="Decision Tree">
+    A tree-like model that makes decisions by asking a series of questions about features.
+    
+    **Structure:**
+    - **Root node:** First decision
+    - **Internal nodes:** Subsequent decisions
+    - **Leaf nodes:** Final predictions
+    
+    **Advantages:** Interpretable, handles non-linear relationships
+    
+    **Disadvantages:** Prone to overfitting
+    
+    **Extensions:** Random Forest, Gradient Boosting
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Deep Learning">
+    A subset of machine learning using neural networks with multiple layers ("deep" networks).
+    
+    **Key Concepts:**
+    - Multiple hidden layers
+    - Automatic feature learning
+    - Requires large datasets
+    - GPU acceleration
+    
+    **Applications:** Image recognition, NLP, speech recognition
+    
+    **Frameworks:** TensorFlow/Keras, PyTorch
+    
+    **Module:** A8
+  </Accordion>
+  
+  <Accordion title="Dimensionality Reduction">
+    Techniques to reduce the number of features while preserving important information.
+    
+    **Methods:**
+    - **PCA** (Principal Component Analysis): Linear transformation
+    - **t-SNE**: Non-linear, good for visualization
+    - **UMAP**: Non-linear, preserves global structure
+    
+    **Benefits:** Faster training, visualization, noise reduction
+    
+    **Module:** A7
+  </Accordion>
+</AccordionGroup>
+
+## E
+
+<AccordionGroup>
+  <Accordion title="EDA (Exploratory Data Analysis)">
+    The process of analyzing datasets to summarize their main characteristics, often using visualizations.
+    
+    **Goals:**
+    - Understand data structure
+    - Detect patterns and anomalies
+    - Test assumptions
+    - Identify relationships between variables
+    
+    **Common Techniques:**
+    - Summary statistics (`df.describe()`)
+    - Visualizations (histograms, box plots, scatter plots)
+    - Correlation analysis
+    - Distribution analysis
+    
+    **Module:** A4 (Primary focus)
+  </Accordion>
+  
+  <Accordion title="Ensemble Methods">
+    Techniques that combine multiple models to improve prediction accuracy.
+    
+    **Types:**
+    - **Bagging:** Train models independently on random subsets (e.g., Random Forest)
+    - **Boosting:** Train models sequentially, each correcting errors of previous (e.g., Gradient Boosting)
+    - **Stacking:** Combine predictions from multiple models using a meta-model
+    
+    **Principle:** "Wisdom of crowds" - multiple weak learners become a strong learner
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Epoch">
+    One complete pass through the entire training dataset during model training.
+    
+    **Example:** Training for 10 epochs means the model sees every training sample 10 times.
+    
+    **Considerations:**
+    - Too few: Underfitting
+    - Too many: Overfitting
+    - Use early stopping to find optimal number
+    
+    **Module:** A8 (Deep Learning)
+  </Accordion>
+</AccordionGroup>
+
+## F
+
+<AccordionGroup>
+  <Accordion title="Feature">
+    An individual measurable property or characteristic of a phenomenon being observed.
+    
+    **Also called:** Variable, predictor, independent variable, attribute
+    
+    **Example:** In a house price dataset, features might include: square footage, number of bedrooms, location, age
+    
+    **Types:**
+    - **Numerical:** Continuous (price) or discrete (count)
+    - **Categorical:** Nominal (color) or ordinal (rating)
+    
+    **Modules:** All modules A3-A8
+  </Accordion>
+  
+  <Accordion title="Feature Engineering">
+    The process of creating new features or transforming existing ones to improve model performance.
+    
+    **Techniques:**
+    - Creating interaction terms
+    - Binning continuous variables
+    - Encoding categorical variables
+    - Extracting date/time components
+    - Polynomial features
+    - Domain-specific transformations
+    
+    **Example:**
+    ```python
+    # Create BMI from height and weight
+    df['BMI'] = df['weight'] / (df['height'] ** 2)
+    
+    # Extract month from date
+    df['month'] = df['date'].dt.month
+    ```
+    
+    **Module:** A6-A7
+  </Accordion>
+  
+  <Accordion title="Feature Scaling">
+    Normalizing or standardizing features to bring them to a similar scale.
+    
+    **Methods:**
+    - **Standardization (Z-score):** `(x - mean) / std` → Mean=0, Std=1
+    - **Min-Max Normalization:** `(x - min) / (max - min)` → Range [0, 1]
+    
+    **Why Important:** Many algorithms (KNN, neural networks) are sensitive to feature scales
+    
+    **Example:**
+    ```python
+    from sklearn.preprocessing import StandardScaler
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
+    ```
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="F1 Score">
+    The harmonic mean of precision and recall, providing a single metric that balances both.
+    
+    **Formula:** `F1 = 2 * (precision * recall) / (precision + recall)`
+    
+    **Range:** 0 to 1 (higher is better)
+    
+    **When to Use:** Imbalanced datasets where both false positives and false negatives are important
+    
+    **Module:** A6
+  </Accordion>
+</AccordionGroup>
+
+## G
+
+<AccordionGroup>
+  <Accordion title="Gradient Descent">
+    An optimization algorithm that iteratively adjusts model parameters to minimize the loss function.
+    
+    **Process:**
+    1. Calculate gradient (slope) of loss function
+    2. Update parameters in opposite direction of gradient
+    3. Repeat until convergence
+    
+    **Variants:**
+    - **Batch GD:** Uses entire dataset
+    - **Stochastic GD:** Uses one sample at a time
+    - **Mini-batch GD:** Uses small batches (most common)
+    
+    **Learning Rate:** Controls step size (critical hyperparameter)
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="GridSearchCV">
+    An exhaustive search over specified parameter values to find the best hyperparameters.
+    
+    **Process:**
+    1. Define parameter grid
+    2. Train model for each combination
+    3. Use cross-validation to evaluate
+    4. Return best parameters
+    
+    **Example:**
+    ```python
+    from sklearn.model_selection import GridSearchCV
+    
+    param_grid = {
+        'n_estimators': [50, 100, 200],
+        'max_depth': [5, 10, 15]
+    }
+    
+    grid_search = GridSearchCV(model, param_grid, cv=5)
+    grid_search.fit(X_train, y_train)
+    best_params = grid_search.best_params_
+    ```
+    
+    **Module:** A6-A7
+  </Accordion>
+</AccordionGroup>
+
+## H
+
+<AccordionGroup>
+  <Accordion title="Hyperparameter">
+    A parameter whose value is set before training and controls the learning process.
+    
+    **Examples:**
+    - Learning rate
+    - Number of trees in random forest
+    - K in K-nearest neighbors
+    - Number of epochs
+    - Batch size
+    
+    **Contrast with:** Model parameters (learned during training, like weights)
+    
+    **Tuning Methods:** Grid search, random search, Bayesian optimization
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="Hypothesis Testing">
+    A statistical method to make inferences about population parameters based on sample data.
+    
+    **Steps:**
+    1. State null hypothesis (H₀) and alternative hypothesis (H₁)
+    2. Choose significance level (α, typically 0.05)
+    3. Calculate test statistic
+    4. Determine p-value
+    5. Make decision: reject or fail to reject H₀
+    
+    **Common Tests:** t-test, chi-square test, ANOVA
+    
+    **Module:** A5 (Statistics)
+  </Accordion>
+</AccordionGroup>
+
+## K
+
+<AccordionGroup>
+  <Accordion title="K-Fold Cross-Validation">
+    See: **Cross-Validation**
+  </Accordion>
+  
+  <Accordion title="K-Means">
+    A clustering algorithm that partitions data into K clusters.
+    
+    **Algorithm:**
+    1. Initialize K cluster centroids randomly
+    2. Assign each point to nearest centroid
+    3. Recalculate centroids as mean of assigned points
+    4. Repeat steps 2-3 until convergence
+    
+    **Choosing K:** Elbow method, silhouette score
+    
+    **Limitations:** Assumes spherical clusters, sensitive to initialization
+    
+    **Module:** A7
+  </Accordion>
+  
+  <Accordion title="KNN (K-Nearest Neighbors)">
+    A simple algorithm that makes predictions based on the K closest training examples.
+    
+    **Classification:** Majority vote of K neighbors
+    
+    **Regression:** Average of K neighbors
+    
+    **Choosing K:**
+    - Small K: More sensitive to noise
+    - Large K: Smoother boundaries
+    - Odd K (for classification): Avoids ties
+    
+    **Requirement:** Feature scaling is critical
+    
+    **Module:** A6
+  </Accordion>
+</AccordionGroup>
+
+## L
+
+<AccordionGroup>
+  <Accordion title="Learning Rate">
+    A hyperparameter that controls how much to update model parameters during training.
+    
+    **Impact:**
+    - **Too high:** Model may overshoot minimum, fail to converge
+    - **Too low:** Very slow training, may get stuck in local minimum
+    
+    **Typical Values:** 0.001, 0.01, 0.1
+    
+    **Advanced:** Learning rate scheduling, adaptive methods (Adam, RMSprop)
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="Logistic Regression">
+    A classification algorithm that models the probability of an instance belonging to a class.
+    
+    **Output:** Probability between 0 and 1 (using sigmoid function)
+    
+    **Decision Rule:** Predict class 1 if probability > 0.5, else class 0
+    
+    **Despite the name:** It's classification, not regression
+    
+    **Use Case:** Binary classification
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Loss Function">
+    A function that measures how well a model's predictions match the actual values.
+    
+    **Also called:** Cost function, objective function
+    
+    **Common Loss Functions:**
+    - **MSE** (Mean Squared Error): For regression
+    - **Cross-Entropy**: For classification
+    - **MAE** (Mean Absolute Error): For regression
+    
+    **Goal:** Minimize the loss during training
+    
+    **Module:** A6-A8
+  </Accordion>
+</AccordionGroup>
+
+## M
+
+<AccordionGroup>
+  <Accordion title="Machine Learning">
+    A field of study that gives computers the ability to learn from data without being explicitly programmed.
+    
+    **Types:**
+    - **Supervised:** Learn from labeled data (classification, regression)
+    - **Unsupervised:** Find patterns in unlabeled data (clustering, dimensionality reduction)
+    - **Reinforcement:** Learn through interaction and feedback
+    
+    **Module:** A6-A8 (primary focus)
+  </Accordion>
+  
+  <Accordion title="Model">
+    A mathematical representation of a real-world process, learned from data.
+    
+    **In ML:** An algorithm trained on data that can make predictions on new data
+    
+    **Lifecycle:**
+    1. Training: Learn patterns from data
+    2. Validation: Tune hyperparameters
+    3. Testing: Evaluate final performance
+    4. Deployment: Use in production
+    
+    **Module:** A6-A8
+  </Accordion>
+</AccordionGroup>
+
+## N
+
+<AccordionGroup>
+  <Accordion title="Neural Network">
+    A machine learning model inspired by biological neural networks, consisting of interconnected nodes (neurons) organized in layers.
+    
+    **Structure:**
+    - **Input layer:** Receives features
+    - **Hidden layers:** Process information
+    - **Output layer:** Produces predictions
+    
+    **Components:**
+    - Weights: Connection strengths
+    - Biases: Offset values
+    - Activation functions: Introduce non-linearity
+    
+    **Types:** Feedforward, Convolutional (CNN), Recurrent (RNN)
+    
+    **Module:** A8
+  </Accordion>
+  
+  <Accordion title="Normalization">
+    See: **Feature Scaling**
+  </Accordion>
+  
+  <Accordion title="NumPy">
+    Python library for numerical computing with multi-dimensional arrays.
+    
+    **Key Features:**
+    - Fast array operations
+    - Broadcasting
+    - Linear algebra functions
+    - Random number generation
+    
+    **Foundation for:** Pandas, scikit-learn, TensorFlow, PyTorch
+    
+    **Module:** A3 (primary), used throughout A4-A8
+  </Accordion>
+</AccordionGroup>
+
+## O
+
+<AccordionGroup>
+  <Accordion title="Outlier">
+    A data point that differs significantly from other observations.
+    
+    **Detection Methods:**
+    - Box plots (IQR method)
+    - Z-score
+    - Isolation Forest
+    
+    **Handling:**
+    - Remove (if error)
+    - Transform (log, square root)
+    - Cap (winsorization)
+    - Keep (if genuine)
+    
+    **Module:** A4 (EDA)
+  </Accordion>
+  
+  <Accordion title="Overfitting">
+    When a model learns training data too well, including noise, resulting in poor generalization to new data.
+    
+    **Signs:**
+    - High training accuracy, low test accuracy
+    - Model is too complex
+    - Training loss decreases but validation loss increases
+    
+    **Solutions:**
+    - Collect more data
+    - Regularization
+    - Reduce model complexity
+    - Cross-validation
+    - Early stopping
+    - Dropout (neural networks)
+    
+    **Module:** A6-A8
+  </Accordion>
+</AccordionGroup>
+
+## P
+
+<AccordionGroup>
+  <Accordion title="Pandas">
+    Python library for data manipulation and analysis.
+    
+    **Key Data Structures:**
+    - **DataFrame:** 2D table
+    - **Series:** 1D array
+    
+    **Capabilities:**
+    - Data loading (CSV, Excel, SQL, etc.)
+    - Data cleaning and transformation
+    - Grouping and aggregation
+    - Time series analysis
+    
+    **Module:** A3 (primary), used throughout A4-A8
+  </Accordion>
+  
+  <Accordion title="PCA (Principal Component Analysis)">
+    A dimensionality reduction technique that transforms data into a new coordinate system.
+    
+    **Purpose:**
+    - Reduce number of features
+    - Remove correlations
+    - Visualize high-dimensional data
+    - Speed up training
+    
+    **Principal Components:** New features that capture maximum variance
+    
+    **Example:**
+    ```python
+    from sklearn.decomposition import PCA
+    pca = PCA(n_components=2)
+    X_reduced = pca.fit_transform(X)
+    ```
+    
+    **Module:** A7
+  </Accordion>
+  
+  <Accordion title="Precision">
+    The proportion of positive predictions that are actually correct.
+    
+    **Formula:** `Precision = TP / (TP + FP)`
+    
+    **Interpretation:** "Of all instances we predicted as positive, how many were actually positive?"
+    
+    **When Important:** When false positives are costly (e.g., spam detection)
+    
+    **Related:** Recall, F1-score
+    
+    **Module:** A6
+  </Accordion>
+</AccordionGroup>
+
+## R
+
+<AccordionGroup>
+  <Accordion title="Random Forest">
+    An ensemble learning method that constructs multiple decision trees and combines their predictions.
+    
+    **Process:**
+    1. Create multiple decision trees on random subsets of data
+    2. Each tree uses random subset of features
+    3. Aggregate predictions (majority vote or average)
+    
+    **Advantages:**
+    - Reduces overfitting compared to single decision tree
+    - Handles non-linear relationships
+    - Feature importance
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Recall">
+    The proportion of actual positive instances that are correctly identified.
+    
+    **Formula:** `Recall = TP / (TP + FN)`
+    
+    **Also called:** Sensitivity, True Positive Rate
+    
+    **Interpretation:** "Of all actual positive instances, how many did we find?"
+    
+    **When Important:** When false negatives are costly (e.g., disease detection)
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Regression">
+    A supervised learning task where the goal is to predict continuous numerical values.
+    
+    **Types:**
+    - **Linear Regression:** Models linear relationships
+    - **Polynomial Regression:** Models non-linear relationships
+    - **Multiple Regression:** Multiple features
+    
+    **Example:** Predicting house prices, temperature, stock prices
+    
+    **Metrics:** MSE, RMSE, MAE, R²
+    
+    **Module:** A6
+  </Accordion>
+  
+  <Accordion title="Regularization">
+    Techniques to prevent overfitting by adding a penalty for model complexity.
+    
+    **Types:**
+    - **L1 (Lasso):** Adds sum of absolute weights → Sparse models
+    - **L2 (Ridge):** Adds sum of squared weights → Distributes weights
+    - **Elastic Net:** Combination of L1 and L2
+    - **Dropout:** Randomly deactivate neurons (neural networks)
+    
+    **Effect:** Simpler, more generalizable models
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="RMSE (Root Mean Squared Error)">
+    A common regression metric that measures average prediction error.
+    
+    **Formula:** `RMSE = sqrt(mean((y_pred - y_true)²))`
+    
+    **Properties:**
+    - Same units as target variable
+    - Penalizes large errors more than MAE
+    - Lower is better
+    
+    **Module:** A6
+  </Accordion>
+</AccordionGroup>
+
+## S
+
+<AccordionGroup>
+  <Accordion title="Supervised Learning">
+    Machine learning where the model learns from labeled data (input-output pairs).
+    
+    **Tasks:**
+    - Classification (discrete outputs)
+    - Regression (continuous outputs)
+    
+    **Examples:** Email spam detection, house price prediction
+    
+    **Requirements:** Labeled training data
+    
+    **Module:** A6 (primary)
+  </Accordion>
+  
+  <Accordion title="Series">
+    Pandas' 1-dimensional labeled array, capable of holding any data type.
+    
+    **Like:** A single column of a DataFrame, or NumPy array with labels
+    
+    **Example:**
+    ```python
+    import pandas as pd
+    s = pd.Series([1, 2, 3, 4], index=['a', 'b', 'c', 'd'])
+    ```
+    
+    **Module:** A3
+  </Accordion>
+</AccordionGroup>
+
+## T
+
+<AccordionGroup>
+  <Accordion title="Test Set">
+    A portion of data held out for final model evaluation.
+    
+    **Purpose:** Provides unbiased estimate of model performance on unseen data
+    
+    **Critical Rule:** Never use test set during model development or hyperparameter tuning
+    
+    **Typical Split:** 80% train, 20% test (or 70-15-15 train-val-test)
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="Training Set">
+    The portion of data used to train the model.
+    
+    **Purpose:** Model learns patterns from this data
+    
+    **Size:** Typically 60-80% of total data
+    
+    **Module:** A6-A8
+  </Accordion>
+</AccordionGroup>
+
+## U
+
+<AccordionGroup>
+  <Accordion title="Underfitting">
+    When a model is too simple to capture the underlying patterns in the data.
+    
+    **Signs:**
+    - Low training accuracy
+    - Low test accuracy
+    - Model is too simple
+    
+    **Solutions:**
+    - Increase model complexity
+    - Add more features
+    - Reduce regularization
+    - Train longer
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="Unsupervised Learning">
+    Machine learning where the model finds patterns in unlabeled data.
+    
+    **Tasks:**
+    - Clustering (grouping similar items)
+    - Dimensionality reduction (simplifying data)
+    - Anomaly detection (finding unusual patterns)
+    
+    **Examples:** Customer segmentation, data compression
+    
+    **Module:** A7
+  </Accordion>
+</AccordionGroup>
+
+## V
+
+<AccordionGroup>
+  <Accordion title="Validation Set">
+    A portion of data used to tune hyperparameters and make model selection decisions.
+    
+    **Purpose:** Evaluate model during development without touching test set
+    
+    **Alternative:** Use cross-validation instead of a fixed validation set
+    
+    **Typical Split:** 15-20% of data (when using train-val-test split)
+    
+    **Module:** A6-A8
+  </Accordion>
+  
+  <Accordion title="Variance">
+    A measure of how much model predictions change with different training data.
+    
+    **High Variance:** Model is sensitive to training data (overfitting)
+    
+    **Low Variance:** Model predictions are stable
+    
+    **Bias-Variance Tradeoff:** Balance between bias (underfitting) and variance (overfitting)
+    
+    **Module:** A6-A7
+  </Accordion>
+  
+  <Accordion title="Vectorization">
+    Performing operations on entire arrays rather than using loops.
+    
+    **Benefits:**
+    - Much faster execution
+    - More readable code
+    - Utilizes optimized C/Fortran code under the hood
+    
+    **Example:**
+    ```python
+    # Slow (loop)
+    result = []
+    for x in arr:
+        result.append(x * 2)
+    
+    # Fast (vectorized)
+    result = arr * 2
+    ```
+    
+    **Module:** A3 (NumPy)
+  </Accordion>
+</AccordionGroup>
+
+## Additional Terms
+
+<CardGroup cols={2}>
+  <Card title="Accuracy" icon="bullseye">
+    `(TP + TN) / Total`
+    
+    Proportion of correct predictions
+  </Card>
+  
+  <Card title="Anomaly Detection" icon="exclamation-triangle">
+    Identifying unusual patterns that don't conform to expected behavior
+  </Card>
+  
+  <Card title="API" icon="plug">
+    Application Programming Interface - way programs communicate
+  </Card>
+  
+  <Card title="Batch Normalization" icon="layer-group">
+    Technique to normalize layer inputs in neural networks
+  </Card>
+  
+  <Card title="Categorical Variable" icon="tags">
+    Variable with discrete categories (e.g., color, country)
+  </Card>
+  
+  <Card title="Confusion Matrix" icon="table-cells">
+    Table showing model prediction vs actual values
+  </Card>
+  
+  <Card title="Correlation" icon="link">
+    Statistical relationship between two variables (-1 to +1)
+  </Card>
+  
+  <Card title="Data Leakage" icon="droplet">
+    When training data contains information about test data
+  </Card>
+  
+  <Card title="Dropout" icon="circle-minus">
+    Regularization by randomly ignoring neurons during training
+  </Card>
+  
+  <Card title="Encoding" icon="code">
+    Converting categorical data to numerical (one-hot, label encoding)
+  </Card>
+  
+  <Card title="False Negative (FN)" icon="circle-xmark">
+    Incorrectly predicted negative (Type II error)
+  </Card>
+  
+  <Card title="False Positive (FP)" icon="circle-exclamation">
+    Incorrectly predicted positive (Type I error)
+  </Card>
+  
+  <Card title="Gradient" icon="arrow-trend-up">
+    Direction and rate of steepest increase of a function
+  </Card>
+  
+  <Card title="Histogram" icon="chart-column">
+    Bar chart showing distribution of numerical data
+  </Card>
+  
+  <Card title="Imputation" icon="fill">
+    Filling in missing values in dataset
+  </Card>
+  
+  <Card title="Label" icon="tag">
+    The target variable in supervised learning (what we predict)
+  </Card>
+  
+  <Card title="MAE" icon="ruler">
+    Mean Absolute Error - average of absolute differences
+  </Card>
+  
+  <Card title="Matrix" icon="table">
+    2D array of numbers
+  </Card>
+  
+  <Card title="MSE" icon="square-root-alt">
+    Mean Squared Error - average of squared differences
+  </Card>
+  
+  <Card title="One-Hot Encoding" icon="binary">
+    Converting categories to binary columns
+  </Card>
+  
+  <Card title="Pipeline" icon="arrow-right-arrow-left">
+    Chain of data processing steps
+  </Card>
+  
+  <Card title="Prediction" icon="crystal-ball">
+    Model's output for a given input
+  </Card>
+  
+  <Card title="R² Score" icon="percentage">
+    Coefficient of determination (0 to 1, higher is better)
+  </Card>
+  
+  <Card title="Sampling" icon="shuffle">
+    Selecting subset of data from larger population
+  </Card>
+  
+  <Card title="Scaling" icon="arrows-left-right-to-line">
+    Transforming features to similar ranges
+  </Card>
+  
+  <Card title="Silhouette Score" icon="chart-area">
+    Metric for evaluating clustering quality
+  </Card>
+  
+  <Card title="Target Variable" icon="crosshairs">
+    What we're trying to predict (dependent variable, label)
+  </Card>
+  
+  <Card title="True Negative (TN)" icon="circle-check">
+    Correctly predicted negative
+  </Card>
+  
+  <Card title="True Positive (TP)" icon="check-double">
+    Correctly predicted positive
+  </Card>
+  
+  <Card title="Weight" icon="weight-hanging">
+    Parameter that scales input to neuron or feature
+  </Card>
+</CardGroup>
+
+## Quick Reference by Module
+
+<Tabs>
+  <Tab title="A3: NumPy & Pandas">
+    Array, Broadcasting, DataFrame, Series, Vectorization, Data Cleaning
+  </Tab>
+  
+  <Tab title="A4: EDA">
+    EDA, Outlier, Correlation, Histogram, Visualization
+  </Tab>
+  
+  <Tab title="A5: Statistics">
+    Hypothesis Testing, Probability, Distribution, P-value, Significance
+  </Tab>
+  
+  <Tab title="A6: Machine Learning">
+    Supervised Learning, Classification, Regression, Cross-Validation, Feature Engineering, Feature Scaling, KNN, Decision Tree, Random Forest, Gradient Descent, Overfitting, Underfitting, Precision, Recall, F1 Score
+  </Tab>
+  
+  <Tab title="A7: Advanced ML">
+    Unsupervised Learning, Clustering, K-Means, PCA, Dimensionality Reduction, Ensemble Methods
+  </Tab>
+  
+  <Tab title="A8: Deep Learning">
+    Neural Network, Deep Learning, Activation Function, Backpropagation, Epoch, Batch Size, Learning Rate, Dropout, Gradient Descent
+  </Tab>
+</Tabs>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Jupyter Notebooks" icon="book" href="/resources/notebooks">
+    See these concepts in action across 111+ notebooks
+  </Card>
+  
+  <Card title="Datasets" icon="database" href="/resources/datasets">
+    Practice with real datasets
+  </Card>
+  
+  <Card title="Tools & Libraries" icon="wrench" href="/resources/tools">
+    Learn the tools that implement these concepts
+  </Card>
+  
+  <Card title="Module Overview" icon="graduation-cap" href="/introduction">
+    Understand how modules build on these concepts
+  </Card>
+</CardGroup>

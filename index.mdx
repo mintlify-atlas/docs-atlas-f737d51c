@@ -1,97 +1,227 @@
 ---
-title: "Introduction"
-description: "Welcome to the new home for your documentation"
+title: Welcome to Data Science Bootcamp
+description: Master data science fundamentals through hands-on projects and real-world applications
+mode: custom
 ---
 
-## Setting up
+<div className="relative overflow-hidden bg-gradient-to-br from-[#1E40AF] via-[#3B82F6] to-[#60A5FA] dark:from-[#0f1117] dark:via-[#1E40AF] dark:to-[#1a1d27] py-20">
+  <div className="max-w-6xl mx-auto px-6 relative z-10">
+    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+      <div className="lg:col-span-7">
+        <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold text-white dark:text-gray-100 mb-6">
+          Data Science Bootcamp
+        </h1>
+        <p className="text-lg sm:text-xl text-white/90 dark:text-gray-300 max-w-2xl mb-8">
+          A comprehensive training curriculum covering Python fundamentals, data analysis, machine learning, and deep learning through 8 structured modules with 111+ hands-on Jupyter notebooks.
+        </p>
+        <div className="flex flex-wrap gap-4">
+          <a 
+            href="/overview" 
+            className="inline-flex items-center px-6 py-3 bg-white dark:bg-white text-[#3B82F6] dark:text-[#1E40AF] font-semibold rounded-lg hover:bg-gray-100 dark:hover:bg-gray-200 transition-colors"
+          >
+            Get Started
+          </a>
+          <a 
+            href="/setup" 
+            className="inline-flex items-center px-6 py-3 border border-white/30 bg-white/10 backdrop-blur-sm text-white font-semibold rounded-lg hover:bg-white/20 transition-colors"
+          >
+            Setup Environment
+          </a>
+        </div>
+      </div>
+      <div className="lg:col-span-5 hidden lg:block">
+        <div className="relative">
+          <div className="absolute inset-0 bg-gradient-to-r from-[#3B82F6]/20 to-[#60A5FA]/20 blur-3xl"></div>
+          <div className="relative bg-white/10 dark:bg-[#1a1d27]/50 backdrop-blur-sm border border-white/20 dark:border-[#27272a] rounded-2xl p-6">
+            <div className="space-y-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#3B82F6] rounded-lg flex items-center justify-center text-white font-bold">8</div>
+                <div className="text-white dark:text-gray-200">Comprehensive Modules</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#60A5FA] rounded-lg flex items-center justify-center text-white font-bold">111+</div>
+                <div className="text-white dark:text-gray-200">Jupyter Notebooks</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#1E40AF] rounded-lg flex items-center justify-center text-white font-bold">7</div>
+                <div className="text-white dark:text-gray-200">Capstone Projects</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
 
-Get your documentation site up and running in minutes.
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">Quick start</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Get your environment ready and run your first notebook in minutes</p>
+  
+  <Steps>
+    <Step title="Clone the repository">
+      Download the bootcamp materials from GitHub:
+      
+      ```bash Terminal
+      git clone https://github.com/yuri19762008/000_ANALISTA-DATOS---TALENTO-DIGITAL.git
+      cd 000_ANALISTA-DATOS---TALENTO-DIGITAL
+      ```
+    </Step>
+    
+    <Step title="Create a virtual environment">
+      Set up an isolated Python environment for the bootcamp:
+      
+      <CodeGroup>
+        ```bash Windows
+        python -m venv Bootcamp
+        Bootcamp\Scripts\activate
+        ```
+        
+        ```bash macOS/Linux
+        python -m venv Bootcamp
+        source Bootcamp/bin/activate
+        ```
+        
+        ```bash Conda
+        conda create -n Bootcamp python=3.10
+        conda activate Bootcamp
+        ```
+      </CodeGroup>
+    </Step>
+    
+    <Step title="Install dependencies">
+      Install the required Python packages:
+      
+      ```bash Terminal
+      pip install --upgrade pip
+      pip install jupyter numpy pandas matplotlib seaborn scikit-learn tensorflow keras torch
+      ```
+      
+      <Note>
+        Each module folder contains a `requirements.txt` file with specific dependencies for that module's projects.
+      </Note>
+    </Step>
+    
+    <Step title="Launch Jupyter and start learning">
+      Start Jupyter Notebook and open your first lesson:
+      
+      ```bash Terminal
+      jupyter notebook
+      ```
+      
+      Navigate to `Bootcamp-main/Modulo1/` to begin with Python fundamentals, or jump to any module based on your skill level.
+    </Step>
+  </Steps>
+</div>
 
-<Card
-  title="Start here"
-  icon="rocket"
-  href="/quickstart"
-  horizontal
->
-  Follow our three step quickstart guide.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">Learning path</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Follow the structured curriculum from Python basics to advanced deep learning</p>
+  
+  <CardGroup cols={2}>
+    <Card title="Python fundamentals" icon="code" href="/modules/python-basics">
+      Master Python basics, OOP concepts, and build your first projects
+    </Card>
+    <Card title="Data preparation & analysis" icon="table" href="/modules/numpy-pandas">
+      Learn NumPy, Pandas, data wrangling, and exploratory analysis techniques
+    </Card>
+    <Card title="Statistical inference" icon="chart-line" href="/modules/probability">
+      Understand probability, distributions, and hypothesis testing
+    </Card>
+    <Card title="Machine learning" icon="robot" href="/modules/supervised-learning">
+      Build regression and classification models with scikit-learn
+    </Card>
+    <Card title="Unsupervised learning" icon="diagram-project" href="/modules/clustering">
+      Explore clustering, dimensionality reduction, and pattern discovery
+    </Card>
+    <Card title="Deep learning" icon="brain" href="/modules/deep-learning">
+      Create neural networks with Keras and PyTorch
+    </Card>
+  </CardGroup>
+</div>
 
-## Make it yours
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <h2 className="text-2xl sm:text-3xl font-semibold text-gray-900 dark:text-white mb-4">Hands-on projects</h2>
+  <p className="text-base text-gray-600 dark:text-gray-400 mb-8">Apply your skills to real-world datasets and business problems</p>
+  
+  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <a href="/projects/contact-manager" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#3B82F6] dark:hover:border-[#3B82F6] overflow-hidden transition-colors no-underline">
+      <div className="h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#60A5FA]/10 dark:from-[#1a1d27] dark:to-[#242838] flex items-center justify-center">
+        <div className="text-5xl">📇</div>
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Contact management system</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Python OOP project with JSON persistence and unit tests</p>
+        <div className="flex items-center text-sm font-medium text-[#3B82F6] group-hover:text-[#1E40AF] dark:group-hover:text-[#60A5FA]">
+          View project
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+    
+    <a href="/projects/eda-comercio" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#3B82F6] dark:hover:border-[#3B82F6] overflow-hidden transition-colors no-underline">
+      <div className="h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#60A5FA]/10 dark:from-[#1a1d27] dark:to-[#242838] flex items-center justify-center">
+        <div className="text-5xl">📊</div>
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">ComercioYA sales analysis</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Exploratory data analysis for e-commerce business decisions</p>
+        <div className="flex items-center text-sm font-medium text-[#3B82F6] group-hover:text-[#1E40AF] dark:group-hover:text-[#60A5FA]">
+          View project
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+    
+    <a href="/projects/regression-ecommerce" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#3B82F6] dark:hover:border-[#3B82F6] overflow-hidden transition-colors no-underline">
+      <div className="h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#60A5FA]/10 dark:from-[#1a1d27] dark:to-[#242838] flex items-center justify-center">
+        <div className="text-5xl">🎯</div>
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">E-commerce sales prediction</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Regression models to predict customer purchase amounts</p>
+        <div className="flex items-center text-sm font-medium text-[#3B82F6] group-hover:text-[#1E40AF] dark:group-hover:text-[#60A5FA]">
+          View project
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+    
+    <a href="/projects/customer-segmentation" className="group block rounded-2xl border border-gray-200 dark:border-[#27272a] hover:border-[#3B82F6] dark:hover:border-[#3B82F6] overflow-hidden transition-colors no-underline">
+      <div className="h-40 bg-gradient-to-br from-[#3B82F6]/10 to-[#60A5FA]/10 dark:from-[#1a1d27] dark:to-[#242838] flex items-center justify-center">
+        <div className="text-5xl">👥</div>
+      </div>
+      <div className="p-5 bg-white dark:bg-[#1a1d27]">
+        <h3 className="text-base font-semibold text-gray-900 dark:text-white mb-2">Customer segmentation</h3>
+        <p className="text-sm text-gray-600 dark:text-gray-400 mb-3">Clustering analysis with K-Means, DBSCAN, and PCA</p>
+        <div className="flex items-center text-sm font-medium text-[#3B82F6] group-hover:text-[#1E40AF] dark:group-hover:text-[#60A5FA]">
+          View project
+          <svg className="ml-1 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+          </svg>
+        </div>
+      </div>
+    </a>
+  </div>
+</div>
 
-Design a docs site that looks great and empowers your users.
-
-<Columns cols={2}>
-  <Card
-    title="Edit locally"
-    icon="pen-to-square"
-    href="/development"
-  >
-    Edit your docs locally and preview them in real time.
-  </Card>
-  <Card
-    title="Customize your site"
-    icon="palette"
-    href="/essentials/settings"
-  >
-    Customize the design and colors of your site to match your brand.
-  </Card>
-    <Card
-    title="Set up navigation"
-    icon="map"
-    href="/essentials/navigation"
-  >
-    Organize your docs to help users find what they need and succeed with your product.
-  </Card>
-  <Card
-    title="API documentation"
-    icon="terminal"
-    href="/api-reference/introduction"
-  >
-    Auto-generate API documentation from OpenAPI specifications.
-  </Card>
-</Columns>
-
-## Create beautiful pages
-
-Everything you need to create world-class documentation.
-
-<Columns cols={2}>
-  <Card
-    title="Write with MDX"
-    icon="pen-fancy"
-    href="/essentials/markdown"
-  >
-    Use MDX to style your docs pages.
-  </Card>
-  <Card
-    title="Code samples"
-    icon="code"
-    href="/essentials/code"
-  >
-    Add sample code to demonstrate how to use your product.
-  </Card>
-  <Card
-    title="Images"
-    icon="image"
-    href="/essentials/images"
-  >
-    Display images and other media.
-  </Card>
-  <Card
-    title="Reusable snippets"
-    icon="recycle"
-    href="/essentials/reusable-snippets"
-  >
-    Write once and reuse across your docs.
-  </Card>
-</Columns>
-
-## Need inspiration?
-
-<Card
-  title="See complete examples"
-  icon="stars"
-  href="https://mintlify.com/customers"
->
-  Browse our showcase of exceptional documentation sites.
-</Card>
+<div className="mt-16 mb-16 max-w-5xl mx-auto px-6">
+  <div className="bg-gradient-to-br from-[#3B82F6]/10 to-[#60A5FA]/10 dark:from-[#1a1d27] dark:to-[#242838] border border-[#3B82F6]/20 dark:border-[#27272a] rounded-2xl p-8">
+    <h2 className="text-2xl font-semibold text-gray-900 dark:text-white mb-3">Ready to start your data science journey?</h2>
+    <p className="text-base text-gray-600 dark:text-gray-400 mb-6">
+      Set up your environment and dive into the first module with hands-on Python exercises.
+    </p>
+    <a 
+      href="/setup" 
+      className="inline-flex items-center px-6 py-3 bg-[#3B82F6] text-white font-semibold rounded-lg hover:bg-[#1E40AF] transition-colors"
+    >
+      Setup your environment
+    </a>
+  </div>
+</div>

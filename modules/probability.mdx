@@ -1,0 +1,208 @@
+---
+title: 'Probability Fundamentals'
+description: 'Learn the basic concepts of probability, events, and random variables with real-world examples'
+---
+
+# Probability Fundamentals
+
+Probability is the foundation of statistical inference. In this module, we'll explore the core concepts using a real study about healthy habits in university students.
+
+## Learning Objectives
+
+By the end of this lesson, you will be able to:
+
+- Define and calculate basic probabilities from sample data
+- Understand random events and their relationships
+- Apply probability rules (union, intersection, complement)
+- Interpret probability in the context of real research questions
+
+## Real-World Context: Student Health Study
+
+<Note>
+Throughout these examples, we'll use data from a simulated study of 150 university students examining the relationship between:
+- Sleep hours and quality
+- Physical activity levels
+- Nutrition scores
+- Stress levels and academic performance
+</Note>
+
+## What is Probability?
+
+Probability measures the likelihood that an event will occur. It ranges from 0 (impossible) to 1 (certain).
+
+In statistical studies, we often estimate probabilities using **relative frequencies**:
+
+```
+P(Event) = Number of times event occurs / Total number of observations
+```
+
+### Example: Sleep Duration
+
+In our student health dataset, we defined the event:
+- **Event A**: Student sleeps ≥ 7 hours per night
+
+From our sample of 150 students:
+- 56 students sleep ≥ 7 hours
+- **P(A) = 56/150 = 0.373**
+
+This means approximately 37% of students in our sample get the recommended amount of sleep.
+
+## Defining Random Events
+
+A **random event** is an outcome (or set of outcomes) from a random phenomenon. In our study, we defined several events:
+
+| Event | Definition | Probability |
+|-------|------------|-------------|
+| A | Student sleeps ≥ 7 hours | P(A) = 0.373 |
+| B | High physical activity level | P(B) = 0.173 |
+| C | Healthy nutrition (score ≥ 7) | P(C) = 0.393 |
+| D | Academic average ≥8.0 | P(D) = 0.207 |
+
+<Warning>
+These probabilities are calculated from our sample data. In statistical inference, we use these sample probabilities to make inferences about the larger population.
+</Warning>
+
+## Probability Rules
+
+### 1. The Complement Rule
+
+The complement of event A (written as A') is the event "A does not occur".
+
+```
+P(A') = 1 - P(A)
+```
+
+**Example:** If P(sleeps ≥ 7 hours) = 0.373, then:
+- P(sleeps &lt; 7 hours) = 1 - 0.373 = **0.627**
+- About 63% of students sleep less than the recommended amount
+
+### 2. The Intersection Rule
+
+The intersection of events A and B (A ∩ B) means both events occur together.
+
+**Example:** Students who BOTH:
+- Sleep ≥ 7 hours (A) AND
+- Have high physical activity (B)
+
+From our data: **P(A ∩ B) = 0.093** (9.3% of students)
+
+### 3. The Union Rule
+
+The union of events A and B (A ∪ B) means at least one event occurs.
+
+```
+P(A ∪ B) = P(A) + P(B) - P(A ∩ B)
+```
+
+**Example:** Students who sleep ≥ 7 hours OR have high physical activity (or both):
+```
+P(A ∪ B) = 0.373 + 0.173 - 0.093 = 0.453
+```
+
+About 45% of students have at least one of these healthy habits.
+
+<Accordion title="Why do we subtract P(A ∩ B)?">
+When we add P(A) + P(B), we count the students who have BOTH characteristics twice. Subtracting P(A ∩ B) corrects for this double-counting.
+
+Think of it like a Venn diagram: the overlapping region shouldn't be counted twice.
+</Accordion>
+
+## Probability Trees
+
+Probability trees help visualize sequential events and calculate complex probabilities.
+
+### Example: Sleep and Activity Combined
+
+We can organize our events in stages:
+
+**First branch:** Sleep duration
+- Sleeps ≥ 7h: P = 0.373
+- Sleeps &lt; 7h: P = 0.627
+
+**Second branch:** Physical activity level (given sleep status)
+
+This allows us to calculate conditional probabilities like:
+- P(High activity | Sleeps ≥ 7h)
+- P(Low activity | Sleeps &lt; 7h)
+
+<Note>
+Probability trees are especially useful when events occur in sequence or when we want to apply conditional probability rules.
+</Note>
+
+## Random Variables
+
+A **random variable** assigns a numerical value to each outcome of a random phenomenon.
+
+### Types of Random Variables
+
+#### Discrete Random Variables
+Take on specific, countable values.
+
+**Examples from our study:**
+- Age (18, 19, 20, ... years)
+- Nutrition score (0, 1, 2, ..., 10)
+- Quality of sleep (coded as mala=1, regular=2, buena=3)
+
+#### Continuous Random Variables
+Can take any value within a range.
+
+**Examples from our study:**
+- Sleep hours per night (can be 6.5, 7.2, 8.15, etc.)
+- Stress score (scale 0-40, with decimal values)
+- Academic average (0-10 scale with decimals)
+
+## Practice: Calculating Probabilities
+
+Let's work through a comprehensive example using our student health data.
+
+### Scenario
+You want to understand the relationship between nutrition and sleep quality.
+
+**Events:**
+- E: Healthy nutrition (score ≥ 7)
+- F: Good sleep quality
+
+**From the data:**
+- 59 students have healthy nutrition: P(E) = 59/150 = 0.393
+- 27 students have good sleep quality: P(F) = 27/150 = 0.180
+- 15 students have both: P(E ∩ F) = 15/150 = 0.100
+
+**Questions:**
+
+1. What's the probability a student has good sleep OR healthy nutrition?
+   ```
+   P(E ∪ F) = P(E) + P(F) - P(E ∩ F)
+   P(E ∪ F) = 0.393 + 0.180 - 0.100 = 0.473
+   ```
+
+2. What's the probability a student has neither?
+   ```
+   P((E ∪ F)') = 1 - P(E ∪ F) = 1 - 0.473 = 0.527
+   ```
+
+<Warning>
+**Important Reminder:** These probabilities are calculated from sample data. When we move to statistical inference, we'll learn to estimate population probabilities and quantify our uncertainty using confidence intervals.
+</Warning>
+
+## Key Takeaways
+
+1. **Probability quantifies uncertainty** using values from 0 to 1
+2. **Sample proportions** estimate population probabilities
+3. **Probability rules** (complement, intersection, union) help us calculate complex event probabilities
+4. **Random variables** assign numbers to outcomes, enabling statistical analysis
+5. **Real-world context** makes probability meaningful - always interpret results in context
+
+## Next Steps
+
+Now that you understand probability fundamentals, you're ready to explore **probability distributions** - mathematical models that describe how probabilities are distributed across possible values of a random variable.
+
+<Note>
+In the next module, we'll see how variables like sleep hours and stress scores follow specific probability distributions (like the normal distribution), which form the foundation for hypothesis testing.
+</Note>
+
+## Additional Resources
+
+- Review the study design and variable dictionary to understand the context
+- Practice calculating probabilities with different event combinations
+- Sketch Venn diagrams to visualize event relationships
+- Consider how sampling variability affects probability estimates

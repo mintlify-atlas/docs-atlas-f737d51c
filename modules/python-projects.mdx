@@ -1,0 +1,616 @@
+---
+title: 'Python Projects'
+description: 'Build real-world Python applications with practical examples and complete project implementations'
+icon: 'folder'
+---
+
+## Introduction
+
+The best way to learn programming is by building real projects. This module showcases complete Python applications from the bootcamp, demonstrating how to apply Python fundamentals and OOP concepts to solve real problems.
+
+## Featured Project: Contact Management System
+
+### Project Overview
+
+<CardGroup cols={2}>
+  <Card title="Project Type" icon="tag">
+    Console Application
+  </Card>
+  <Card title="Language" icon="python">
+    Python 3.7+
+  </Card>
+  <Card title="Concepts" icon="book">
+    OOP, File I/O, JSON
+  </Card>
+  <Card title="Tests" icon="check">
+    22 Unit Tests
+  </Card>
+</CardGroup>
+
+This project implements a complete **Contact Management System** that allows users to register, search, edit, and delete contacts through a command-line interface. It demonstrates object-oriented programming, data persistence, and proper software engineering practices.
+
+<Note>
+**Project Status**: ![Tests](https://img.shields.io/badge/Tests-22%2F22-brightgreen) ![License](https://img.shields.io/badge/License-MIT-yellow)
+</Note>
+
+### Key Features
+
+- **CRUD Operations**: Complete Create, Read, Update, Delete functionality
+- **Flexible Search**: Search by name (partial match) or phone (exact match)
+- **Data Validation**: Input validation with descriptive error messages
+- **JSON Persistence**: Automatic save/load of contacts
+- **User-Friendly Interface**: Interactive menu-driven CLI
+- **Unit Tests**: Comprehensive test coverage with `unittest`
+
+## Project Architecture
+
+### File Structure
+
+```bash
+Sistema-Gestion-Contactos/
+│
+├── main.py                 # Entry point - CLI interface
+├── contact.py              # Contact class (data model)
+├── contact_manager.py      # ContactManager class (business logic)
+├── test_contact_system.py  # Unit tests
+│
+├── README.md               # Project documentation
+├── contactos.json          # Data file (auto-generated)
+└── ejemplos_uso.py         # Usage examples
+```
+
+<Accordion title="Design Pattern: Separation of Concerns">
+The project follows a clean architecture:
+
+1. **Data Layer** (`contact.py`): Defines the Contact model
+2. **Business Logic Layer** (`contact_manager.py`): Handles operations and persistence
+3. **Presentation Layer** (`main.py`): Manages user interaction
+
+This separation makes the code:
+- Easier to test
+- More maintainable
+- Reusable in different contexts
+</Accordion>
+
+### Core Components
+
+<Tabs>
+  <Tab title="Contact Model">
+    The `Contact` class represents a single contact with encapsulation:
+    
+    ```python
+    class Contact:
+        """
+        Clase que representa un contacto.
+        
+        Atributos:
+            nombre (str): Nombre del contacto
+            telefono (str): Teléfono del contacto
+            email (str): Email del contacto
+            direccion (str): Dirección del contacto
+        """
+        
+        def __init__(self, nombre: str, telefono: str, email: str, direccion: str):
+            self._nombre = nombre
+            self._telefono = telefono
+            self._email = email
+            self._direccion = direccion
+        
+        @property
+        def nombre(self) -> str:
+            return self._nombre
+        
+        @nombre.setter
+        def nombre(self, valor: str):
+            if not valor.strip():
+                raise ValueError("El nombre no puede estar vacío")
+            self._nombre = valor
+        
+        def to_dict(self) -> dict:
+            """Convert contact to dictionary for JSON serialization"""
+            return {
+                "nombre": self._nombre,
+                "telefono": self._telefono,
+                "email": self._email,
+                "direccion": self._direccion,
+            }
+        
+        @staticmethod
+        def from_dict(data: dict) -> "Contact":
+            """Create contact from dictionary"""
+            return Contact(
+                data["nombre"],
+                data["telefono"],
+                data["email"],
+                data["direccion"],
+            )
+    ```
+  </Tab>
+  
+  <Tab title="Contact Manager">
+    The `ContactManager` class handles business logic and persistence:
+    
+    ```python
+    import json
+    import os
+    from contact import Contact
+    
+    class ContactManager:
+        """
+        Gestor de contactos.
+        
+        Responsabilidades:
+        - Agregar, editar y eliminar contactos
+        - Buscar contactos por nombre o teléfono
+        - Persistencia de datos en JSON
+        """
+        
+        def __init__(self, archivo_datos: str = "contactos.json"):
+            self._archivo_datos = archivo_datos
+            self._contactos: list[Contact] = []
+            self._cargar_contactos()
+        
+        def agregar_contacto(self, nombre: str, telefono: str, 
+                           email: str, direccion: str):
+            """Agrega un nuevo contacto"""
+            if self.buscar_por_telefono(telefono):
+                raise ValueError(
+                    f"Ya existe un contacto con el teléfono '{telefono}'"
+                )
+            
+            nuevo_contacto = Contact(nombre, telefono, email, direccion)
+            self._contactos.append(nuevo_contacto)
+            self._guardar_contactos()
+        
+        def buscar_por_nombre(self, nombre: str) -> list[Contact]:
+            """Busca contactos por nombre (búsqueda parcial)"""
+            nombre_busqueda = nombre.lower()
+            return [
+                c for c in self._contactos 
+                if nombre_busqueda in c.nombre.lower()
+            ]
+        
+        def _guardar_contactos(self):
+            """Guarda los contactos en el archivo JSON"""
+            try:
+                datos = [c.to_dict() for c in self._contactos]
+                with open(self._archivo_datos, "w", encoding="utf-8") as archivo:
+                    json.dump(datos, archivo, indent=2, ensure_ascii=False)
+            except Exception as e:
+                raise Exception(f"Error al guardar contactos: {e}")
+    ```
+  </Tab>
+  
+  <Tab title="CLI Interface">
+    The `main.py` file provides a user-friendly command-line interface:
+    
+    ```python
+    from contact_manager import ContactManager
+    
+    def mostrar_menu():
+        """Muestra el menú principal de la aplicación"""
+        print("\n" + "=" * 50)
+        print("SISTEMA DE GESTIÓN DE CONTACTOS")
+        print("=" * 50)
+        print("1. Agregar nuevo contacto")
+        print("2. Ver todos los contactos")
+        print("3. Buscar contacto por nombre")
+        print("4. Buscar contacto por teléfono")
+        print("5. Editar contacto")
+        print("6. Eliminar contacto")
+        print("7. Salir")
+        print("=" * 50)
+    
+    def agregar_contacto(gestor: ContactManager):
+        """Permite agregar un nuevo contacto"""
+        try:
+            print("\n--- AGREGAR NUEVO CONTACTO ---")
+            nombre = input("Nombre: ").strip()
+            if not nombre:
+                print("❌ El nombre no puede estar vacío")
+                return
+            
+            telefono = input("Teléfono: ").strip()
+            email = input("Correo: ").strip()
+            direccion = input("Dirección: ").strip()
+            
+            gestor.agregar_contacto(nombre, telefono, email, direccion)
+            print("✅ Contacto agregado correctamente")
+        except Exception as e:
+            print(f"❌ Error al agregar contacto: {e}")
+    
+    def main():
+        """Función principal de la aplicación"""
+        gestor = ContactManager("contactos.json")
+        
+        while True:
+            mostrar_menu()
+            opcion = input("Seleccione una opción: ").strip()
+            
+            if opcion == "1":
+                agregar_contacto(gestor)
+            elif opcion == "2":
+                ver_todos_contactos(gestor)
+            elif opcion == "3":
+                buscar_por_nombre(gestor)
+            # ... other options ...
+            elif opcion == "7":
+                print("\n✅ ¡Gracias por usar el Sistema!")
+                break
+            else:
+                print("❌ Opción no válida")
+    
+    if __name__ == "__main__":
+        main()
+    ```
+  </Tab>
+</Tabs>
+
+## Implementation Details
+
+### Data Persistence with JSON
+
+The application uses JSON for data persistence, making it human-readable and easy to debug:
+
+<CodeGroup>
+```python Saving to JSON
+def _guardar_contactos(self):
+    """Guarda los contactos en el archivo JSON"""
+    try:
+        # Convert Contact objects to dictionaries
+        datos = [c.to_dict() for c in self._contactos]
+        
+        # Write to file with proper encoding
+        with open(self._archivo_datos, "w", encoding="utf-8") as archivo:
+            json.dump(datos, archivo, indent=2, ensure_ascii=False)
+    except Exception as e:
+        raise Exception(f"Error al guardar contactos: {e}")
+```
+
+```python Loading from JSON
+def _cargar_contactos(self):
+    """Carga los contactos desde el archivo JSON"""
+    if os.path.exists(self._archivo_datos):
+        try:
+            with open(self._archivo_datos, "r", encoding="utf-8") as archivo:
+                datos = json.load(archivo)
+                # Convert dictionaries back to Contact objects
+                self._contactos = [Contact.from_dict(c) for c in datos]
+            print(f"✅ {len(self._contactos)} contactos cargados")
+        except Exception as e:
+            print(f"⚠️  Error al cargar contactos: {e}")
+            self._contactos = []
+    else:
+        self._contactos = []
+```
+
+```json Sample JSON Data
+[
+  {
+    "nombre": "Juan García",
+    "telefono": "+56912345678",
+    "email": "juan@example.com",
+    "direccion": "Calle Principal 123"
+  },
+  {
+    "nombre": "María López",
+    "telefono": "+56987654321",
+    "email": "maria@example.com",
+    "direccion": "Avenida Central 456"
+  }
+]
+```
+</CodeGroup>
+
+### Search Functionality
+
+The system implements two types of search:
+
+<Tabs>
+  <Tab title="Name Search (Partial Match)">
+    ```python
+    def buscar_por_nombre(self, nombre: str) -> list[Contact]:
+        """Busca contactos por nombre (búsqueda parcial)"""
+        nombre_busqueda = nombre.lower()
+        return [
+            c for c in self._contactos 
+            if nombre_busqueda in c.nombre.lower()
+        ]
+    ```
+    
+    **Features:**
+    - Case-insensitive search
+    - Partial matches ("Juan" finds "Juan García")
+    - Returns list of all matching contacts
+  </Tab>
+  
+  <Tab title="Phone Search (Exact Match)">
+    ```python
+    def buscar_por_telefono(self, telefono: str) -> Contact | None:
+        """Busca un contacto por teléfono (búsqueda exacta)"""
+        for contacto in self._contactos:
+            if contacto.telefono == telefono:
+                return contacto
+        return None
+    ```
+    
+    **Features:**
+    - Exact match only
+    - Returns single contact or None
+    - Used as unique identifier
+  </Tab>
+</Tabs>
+
+### Edit and Delete Operations
+
+<CodeGroup>
+```python Edit Contact
+def editar_contacto(gestor: ContactManager):
+    """Edita un contacto existente"""
+    try:
+        telefono = input("\nTeléfono del contacto a editar: ").strip()
+        contacto = gestor.buscar_por_telefono(telefono)
+        
+        if not contacto:
+            print(f"❌ No se encontró contacto con el teléfono '{telefono}'")
+            return
+        
+        print(f"\nContacto actual:\n{contacto}")
+        print("\nDejar en blanco para mantener el valor actual")
+        
+        nombre = input("Nuevo nombre: ").strip() or contacto.nombre
+        email = input("Nuevo correo: ").strip() or contacto.email
+        direccion = input("Nueva dirección: ").strip() or contacto.direccion
+        
+        gestor.editar_contacto(telefono, nombre, email, direccion)
+        print("✅ Contacto editado correctamente")
+    except Exception as e:
+        print(f"❌ Error al editar contacto: {e}")
+```
+
+```python Delete Contact
+def eliminar_contacto(gestor: ContactManager):
+    """Elimina un contacto"""
+    try:
+        telefono = input("\nTeléfono del contacto a eliminar: ").strip()
+        contacto = gestor.buscar_por_telefono(telefono)
+        
+        if not contacto:
+            print(f"❌ No se encontró contacto")
+            return
+        
+        print(f"\nContacto a eliminar:\n{contacto}")
+        confirmacion = input("\n¿Seguro que desea eliminar? (S/N): ")
+        confirmacion = confirmacion.strip().upper()
+        
+        if confirmacion == "S":
+            gestor.eliminar_contacto(telefono)
+            print("✅ Contacto eliminado correctamente")
+        else:
+            print("❌ Operación cancelada")
+    except Exception as e:
+        print(f"❌ Error al eliminar contacto: {e}")
+```
+</CodeGroup>
+
+## Testing
+
+### Unit Tests
+
+The project includes comprehensive unit tests covering all functionality:
+
+```python
+import unittest
+import os
+from contact import Contact
+from contact_manager import ContactManager
+
+class TestContact(unittest.TestCase):
+    def setUp(self):
+        self.contacto = Contact(
+            "Juan García",
+            "+56912345678",
+            "juan@example.com",
+            "Calle Principal 123",
+        )
+    
+    def test_crear_contacto(self):
+        self.assertEqual(self.contacto.nombre, "Juan García")
+        self.assertEqual(self.contacto.telefono, "+56912345678")
+    
+    def test_actualizar_nombre(self):
+        self.contacto.nombre = "María García"
+        self.assertEqual(self.contacto.nombre, "María García")
+    
+    def test_nombre_vacio_invalido(self):
+        with self.assertRaises(ValueError):
+            self.contacto.nombre = ""
+
+class TestContactManager(unittest.TestCase):
+    def setUp(self):
+        self.archivo_pruebas = "test_contactos.json"
+        if os.path.exists(self.archivo_pruebas):
+            os.remove(self.archivo_pruebas)
+        self.gestor = ContactManager(self.archivo_pruebas)
+    
+    def tearDown(self):
+        if os.path.exists(self.archivo_pruebas):
+            os.remove(self.archivo_pruebas)
+    
+    def test_agregar_contacto(self):
+        self.gestor.agregar_contacto(
+            "Ana Silva",
+            "+56912345678",
+            "ana@example.com",
+            "Paseo del Mar 101",
+        )
+        self.assertEqual(self.gestor.obtener_cantidad_contactos(), 1)
+    
+    def test_persistencia_datos(self):
+        self.gestor.agregar_contacto(
+            "Test",
+            "+56912345678",
+            "test@example.com",
+            "Test Address",
+        )
+        # Create new manager instance - data should persist
+        gestor2 = ContactManager(self.archivo_pruebas)
+        contactos = gestor2.obtener_todos_contactos()
+        self.assertEqual(len(contactos), 1)
+
+if __name__ == "__main__":
+    unittest.main(verbosity=2)
+```
+
+<Note>
+**Test Coverage**: The test suite includes 22 tests covering:
+- Contact creation and validation
+- Property getters and setters
+- CRUD operations
+- Search functionality
+- Data persistence
+- Error handling
+</Note>
+
+### Running Tests
+
+```bash
+# Run all tests
+python test_contact_system.py
+
+# Run with verbose output
+python test_contact_system.py -v
+
+# Run specific test class
+python -m unittest test_contact_system.TestContact
+```
+
+## Usage Examples
+
+### Basic Usage
+
+```python
+from contact_manager import ContactManager
+
+# Initialize the manager
+gestor = ContactManager("contactos.json")
+
+# Add contacts
+gestor.agregar_contacto(
+    "Juan García",
+    "+56912345678",
+    "juan@example.com",
+    "Calle Principal 123"
+)
+
+# Search by name
+resultados = gestor.buscar_por_nombre("Juan")
+for contacto in resultados:
+    print(contacto)
+
+# Search by phone
+contacto = gestor.buscar_por_telefono("+56912345678")
+if contacto:
+    print(f"Found: {contacto.nombre}")
+
+# Edit contact
+gestor.editar_contacto(
+    "+56912345678",
+    email="juan.nuevo@example.com"
+)
+
+# Delete contact
+gestor.eliminar_contacto("+56912345678")
+
+# Get statistics
+total = gestor.obtener_cantidad_contactos()
+print(f"Total contacts: {total}")
+```
+
+## Project Benefits
+
+<CardGroup cols={2}>
+  <Card title="Clean Architecture" icon="layer-group">
+    Separation of concerns between data, business logic, and presentation layers
+  </Card>
+  
+  <Card title="Data Validation" icon="shield-check">
+    Input validation with descriptive error messages prevents invalid data
+  </Card>
+  
+  <Card title="Persistent Storage" icon="database">
+    JSON-based storage ensures data survives between sessions
+  </Card>
+  
+  <Card title="Test Coverage" icon="vial">
+    Comprehensive unit tests ensure code reliability and catch regressions
+  </Card>
+  
+  <Card title="User-Friendly" icon="smile">
+    Interactive CLI with clear prompts and visual feedback (✅/❌)
+  </Card>
+  
+  <Card title="Type Safety" icon="code">
+    Type hints throughout improve code clarity and IDE support
+  </Card>
+</CardGroup>
+
+## Technologies Used
+
+- **Python 3.7+**: Core programming language
+- **json**: Built-in module for data persistence
+- **os**: File system operations
+- **unittest**: Built-in testing framework
+- **typing**: Type hints for better code quality
+
+<Note>
+**No External Dependencies**: The project uses only Python's standard library, making it easy to run in any Python 3.7+ environment.
+</Note>
+
+## Key Takeaways
+
+This project demonstrates several important software development concepts:
+
+1. **Object-Oriented Design**: Clean class structure with encapsulation
+2. **CRUD Operations**: Complete Create, Read, Update, Delete functionality
+3. **Data Persistence**: Loading and saving data with JSON
+4. **Error Handling**: Try-except blocks and validation
+5. **Testing**: Unit tests with setUp/tearDown
+6. **User Experience**: Clear interface with visual feedback
+7. **Code Organization**: Separation of concerns across modules
+
+## Practice Exercises
+
+<Accordion title="Exercise 1: Add Export Feature">
+Add a method to export contacts to CSV format:
+```python
+def exportar_csv(self, filename: str):
+    """Export contacts to CSV file"""
+    # Your implementation here
+```
+
+**Hint**: Use Python's `csv` module.
+</Accordion>
+
+<Accordion title="Exercise 2: Add Contact Categories">
+Extend the Contact class to include a category field (family, work, friends) and add filtering by category.
+
+**Hint**: Update the `__init__` method and add a new search method.
+</Accordion>
+
+<Accordion title="Exercise 3: Add Email Validation">
+Implement email format validation in the Contact class using regular expressions.
+
+**Hint**: Use the `re` module and validate in the email setter.
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Python Basics" icon="python" href="/modules/python-basics">
+    Review fundamental Python concepts
+  </Card>
+  <Card title="Object-Oriented Programming" icon="cube" href="/modules/python-oop">
+    Deep dive into OOP principles
+  </Card>
+</CardGroup>

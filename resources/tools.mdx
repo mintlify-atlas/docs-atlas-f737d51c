@@ -1,0 +1,883 @@
+---
+title: 'Tools & Libraries'
+description: 'Complete guide to the technology stack used in the Data Science Bootcamp'
+icon: 'wrench'
+---
+
+## Overview
+
+The bootcamp uses industry-standard tools and libraries for data science and machine learning. This page covers installation, configuration, and essential usage for each tool.
+
+<Info>
+  All tools are open-source and widely used in professional data science environments.
+</Info>
+
+## Core Technology Stack
+
+<CardGroup cols={3}>
+  <Card title="Python" icon="python">
+    **Version:** 3.8+
+    
+    Core programming language
+  </Card>
+  
+  <Card title="Jupyter" icon="book">
+    **Tool:** Jupyter Notebook/Lab
+    
+    Interactive development environment
+  </Card>
+  
+  <Card title="NumPy" icon="calculator">
+    **Domain:** Numerical Computing
+    
+    Array operations and linear algebra
+  </Card>
+  
+  <Card title="Pandas" icon="table">
+    **Domain:** Data Manipulation
+    
+    DataFrames and data analysis
+  </Card>
+  
+  <Card title="Matplotlib" icon="chart-line">
+    **Domain:** Visualization
+    
+    Static plotting library
+  </Card>
+  
+  <Card title="Seaborn" icon="palette">
+    **Domain:** Visualization
+    
+    Statistical data visualization
+  </Card>
+  
+  <Card title="scikit-learn" icon="brain">
+    **Domain:** Machine Learning
+    
+    Classical ML algorithms
+  </Card>
+  
+  <Card title="TensorFlow" icon="cube">
+    **Domain:** Deep Learning
+    
+    Neural networks with Keras API
+  </Card>
+  
+  <Card title="PyTorch" icon="fire">
+    **Domain:** Deep Learning
+    
+    Dynamic neural networks
+  </Card>
+  
+  <Card title="Streamlit" icon="display">
+    **Domain:** Web Apps
+    
+    Data app deployment
+  </Card>
+  
+  <Card title="Keras" icon="layer-group">
+    **Domain:** Deep Learning
+    
+    High-level neural network API
+  </Card>
+  
+  <Card title="lxml" icon="code">
+    **Domain:** Data Parsing
+    
+    XML and HTML processing
+  </Card>
+</CardGroup>
+
+## Installation Guide
+
+### Method 1: Using pip (Recommended)
+
+<Steps>
+  <Step title="Install Python">
+    Download Python 3.8 or higher from [python.org](https://www.python.org/downloads/)
+    
+    Verify installation:
+    ```bash
+    python --version
+    # or
+    python3 --version
+    ```
+  </Step>
+  
+  <Step title="Create Virtual Environment">
+    It's best practice to use a virtual environment:
+    
+    ```bash
+    # Create virtual environment
+    python -m venv bootcamp-env
+    
+    # Activate (Windows)
+    bootcamp-env\Scripts\activate
+    
+    # Activate (Mac/Linux)
+    source bootcamp-env/bin/activate
+    ```
+  </Step>
+  
+  <Step title="Install Core Libraries">
+    Install all required packages:
+    
+    ```bash
+    # Data manipulation and analysis
+    pip install numpy pandas
+    
+    # Visualization
+    pip install matplotlib seaborn
+    
+    # Machine Learning
+    pip install scikit-learn
+    
+    # Deep Learning
+    pip install tensorflow keras torch torchvision
+    
+    # Jupyter and utilities
+    pip install jupyter jupyterlab
+    pip install streamlit
+    pip install lxml requests
+    ```
+  </Step>
+  
+  <Step title="Verify Installation">
+    Test that everything works:
+    
+    ```python
+    import numpy as np
+    import pandas as pd
+    import matplotlib.pyplot as plt
+    import seaborn as sns
+    import sklearn
+    import tensorflow as tf
+    import torch
+    
+    print("All libraries imported successfully!")
+    print(f"NumPy: {np.__version__}")
+    print(f"Pandas: {pd.__version__}")
+    print(f"Scikit-learn: {sklearn.__version__}")
+    print(f"TensorFlow: {tf.__version__}")
+    print(f"PyTorch: {torch.__version__}")
+    ```
+  </Step>
+</Steps>
+
+### Method 2: Using Anaconda
+
+<Accordion title="Anaconda Installation (Alternative)">
+Anaconda provides a pre-packaged data science environment:
+
+1. Download Anaconda from [anaconda.com](https://www.anaconda.com/products/distribution)
+
+2. Create a new environment:
+```bash
+conda create -n bootcamp python=3.9
+conda activate bootcamp
+```
+
+3. Install packages:
+```bash
+# Most packages included with Anaconda
+conda install numpy pandas matplotlib seaborn scikit-learn jupyter
+
+# Deep learning frameworks
+conda install -c conda-forge tensorflow
+conda install pytorch torchvision -c pytorch
+
+# Additional tools
+conda install streamlit
+```
+
+4. Launch Jupyter:
+```bash
+jupyter notebook
+# or
+jupyter lab
+```
+</Accordion>
+
+### Using Requirements Files
+
+The bootcamp includes `requirements.txt` files in project folders:
+
+```bash
+# Navigate to project directory
+cd source/002_A3/PROYECTO/
+
+# Install all requirements
+pip install -r requirements.txt
+```
+
+## Library Reference
+
+### Python
+
+<Card title="Python 3.8+" icon="python">
+  **Official Documentation:** [python.org/doc](https://docs.python.org/3/)
+  
+  **Purpose:** Core programming language for all bootcamp activities
+  
+  **Key Features:**
+  - Easy-to-learn syntax
+  - Extensive standard library
+  - Rich ecosystem for data science
+  - Cross-platform compatibility
+  
+  **Bootcamp Usage:** Foundation for all modules (A1-A8)
+</Card>
+
+---
+
+### Jupyter Notebook/Lab
+
+<Card title="Jupyter" icon="book">
+  **Official Documentation:** [jupyter.org](https://jupyter.org/documentation)
+  
+  **Purpose:** Interactive development environment for data science
+  
+  **Key Features:**
+  - Combine code, text, and visualizations
+  - Cell-by-cell execution
+  - Rich output display (plots, tables, HTML)
+  - Markdown support
+  - Easy sharing and collaboration
+  
+  **Launch Commands:**
+  ```bash
+  # Classic Notebook
+  jupyter notebook
+  
+  # JupyterLab (modern interface)
+  jupyter lab
+  
+  # Open specific notebook
+  jupyter notebook path/to/notebook.ipynb
+  ```
+  
+  **Bootcamp Usage:** All 111+ notebooks (A1-A8)
+  
+  **Tips:**
+  - Use JupyterLab for multi-file projects
+  - Install extensions for enhanced functionality
+  - Use `%matplotlib inline` for inline plots
+</Card>
+
+---
+
+### NumPy
+
+<Card title="NumPy" icon="calculator">
+  **Official Documentation:** [numpy.org](https://numpy.org/doc/)
+  
+  **Purpose:** Numerical computing with multi-dimensional arrays
+  
+  **Key Features:**
+  - N-dimensional array object (ndarray)
+  - Broadcasting for vectorized operations
+  - Linear algebra functions
+  - Random number generation
+  - Fast mathematical operations
+  
+  **Common Operations:**
+  ```python
+  import numpy as np
+  
+  # Create arrays
+  arr = np.array([1, 2, 3, 4, 5])
+  matrix = np.array([[1, 2], [3, 4]])
+  
+  # Array operations
+  result = arr * 2
+  mean = np.mean(arr)
+  
+  # Linear algebra
+  dot_product = np.dot(matrix, matrix.T)
+  ```
+  
+  **Bootcamp Usage:** Module A3 (NumPy fundamentals), foundation for all numerical work
+  
+  **Version Requirement:** 1.19+
+</Card>
+
+---
+
+### Pandas
+
+<Card title="Pandas" icon="table">
+  **Official Documentation:** [pandas.pydata.org](https://pandas.pydata.org/docs/)
+  
+  **Purpose:** Data manipulation and analysis with DataFrames
+  
+  **Key Features:**
+  - DataFrame and Series data structures
+  - Reading/writing various file formats (CSV, Excel, SQL)
+  - Data cleaning and transformation
+  - Group by operations
+  - Time series functionality
+  - Missing data handling
+  
+  **Common Operations:**
+  ```python
+  import pandas as pd
+  
+  # Load data
+  df = pd.read_csv('data.csv')
+  
+  # Exploration
+  df.head()
+  df.info()
+  df.describe()
+  
+  # Manipulation
+  df_clean = df.dropna()
+  df_grouped = df.groupby('category')['value'].sum()
+  
+  # Save results
+  df.to_csv('output.csv', index=False)
+  ```
+  
+  **Bootcamp Usage:** Module A3 (primary focus), used throughout A4-A8
+  
+  **Version Requirement:** 1.2+
+</Card>
+
+---
+
+### Matplotlib
+
+<Card title="Matplotlib" icon="chart-line">
+  **Official Documentation:** [matplotlib.org](https://matplotlib.org/stable/contents.html)
+  
+  **Purpose:** Comprehensive plotting and visualization
+  
+  **Key Features:**
+  - Publication-quality figures
+  - Multiple plot types (line, scatter, bar, histogram, etc.)
+  - Fine-grained control over plot elements
+  - Subplots and figure layouts
+  - Save plots in various formats
+  
+  **Common Operations:**
+  ```python
+  import matplotlib.pyplot as plt
+  
+  # Basic plot
+  plt.plot(x, y)
+  plt.xlabel('X Label')
+  plt.ylabel('Y Label')
+  plt.title('My Plot')
+  plt.show()
+  
+  # Subplots
+  fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+  ax1.plot(x, y)
+  ax2.scatter(x, z)
+  
+  # Save figure
+  plt.savefig('plot.png', dpi=300, bbox_inches='tight')
+  ```
+  
+  **Bootcamp Usage:** Module A4 (primary), used in A5-A8 for visualizing results
+  
+  **Version Requirement:** 3.3+
+</Card>
+
+---
+
+### Seaborn
+
+<Card title="Seaborn" icon="palette">
+  **Official Documentation:** [seaborn.pydata.org](https://seaborn.pydata.org/)
+  
+  **Purpose:** Statistical data visualization built on Matplotlib
+  
+  **Key Features:**
+  - Beautiful default styles
+  - Statistical plotting functions
+  - Integration with Pandas DataFrames
+  - Complex visualizations with less code
+  - Color palettes and themes
+  
+  **Common Operations:**
+  ```python
+  import seaborn as sns
+  import matplotlib.pyplot as plt
+  
+  # Set style
+  sns.set_style('whitegrid')
+  
+  # Statistical plots
+  sns.histplot(data=df, x='column', kde=True)
+  sns.boxplot(data=df, x='category', y='value')
+  sns.heatmap(df.corr(), annot=True, cmap='coolwarm')
+  
+  # Pair plot for multivariate analysis
+  sns.pairplot(df, hue='target')
+  
+  plt.show()
+  ```
+  
+  **Bootcamp Usage:** Module A4 (primary), enhances visualizations in A5-A8
+  
+  **Version Requirement:** 0.11+
+</Card>
+
+---
+
+### scikit-learn
+
+<Card title="scikit-learn" icon="brain">
+  **Official Documentation:** [scikit-learn.org](https://scikit-learn.org/stable/)
+  
+  **Purpose:** Machine learning algorithms and tools
+  
+  **Key Features:**
+  - Classification, regression, clustering algorithms
+  - Model selection and evaluation
+  - Data preprocessing and feature engineering
+  - Pipeline construction
+  - Cross-validation tools
+  - Extensive algorithm library
+  
+  **Common Operations:**
+  ```python
+  from sklearn.model_selection import train_test_split
+  from sklearn.preprocessing import StandardScaler
+  from sklearn.linear_model import LinearRegression
+  from sklearn.metrics import mean_squared_error, r2_score
+  
+  # Split data
+  X_train, X_test, y_train, y_test = train_test_split(
+      X, y, test_size=0.2, random_state=42
+  )
+  
+  # Preprocess
+  scaler = StandardScaler()
+  X_train_scaled = scaler.fit_transform(X_train)
+  X_test_scaled = scaler.transform(X_test)
+  
+  # Train model
+  model = LinearRegression()
+  model.fit(X_train_scaled, y_train)
+  
+  # Evaluate
+  y_pred = model.predict(X_test_scaled)
+  rmse = mean_squared_error(y_test, y_pred, squared=False)
+  r2 = r2_score(y_test, y_pred)
+  ```
+  
+  **Key Algorithms Used:**
+  - Linear/Logistic Regression
+  - K-Nearest Neighbors (KNN)
+  - Decision Trees and Random Forests
+  - Gradient Boosting
+  - K-Means Clustering
+  - PCA (Principal Component Analysis)
+  
+  **Bootcamp Usage:** Modules A6-A7 (primary), introduction to ML workflows
+  
+  **Version Requirement:** 0.24+
+</Card>
+
+---
+
+### TensorFlow & Keras
+
+<Card title="TensorFlow + Keras" icon="cube">
+  **Official Documentation:** 
+  - [tensorflow.org](https://www.tensorflow.org/api_docs)
+  - [keras.io](https://keras.io/)
+  
+  **Purpose:** Deep learning framework with high-level Keras API
+  
+  **Key Features:**
+  - Sequential and Functional APIs
+  - Pre-built layers and models
+  - Automatic differentiation
+  - GPU acceleration
+  - Model saving and deployment
+  - Extensive pre-trained models
+  
+  **Common Operations:**
+  ```python
+  import tensorflow as tf
+  from tensorflow import keras
+  from tensorflow.keras import layers
+  
+  # Build model
+  model = keras.Sequential([
+      layers.Flatten(input_shape=(28, 28)),
+      layers.Dense(128, activation='relu'),
+      layers.Dropout(0.2),
+      layers.Dense(10, activation='softmax')
+  ])
+  
+  # Compile
+  model.compile(
+      optimizer='adam',
+      loss='sparse_categorical_crossentropy',
+      metrics=['accuracy']
+  )
+  
+  # Train
+  history = model.fit(
+      X_train, y_train,
+      epochs=10,
+      validation_split=0.2,
+      batch_size=32
+  )
+  
+  # Evaluate
+  test_loss, test_acc = model.evaluate(X_test, y_test)
+  
+  # Save
+  model.save('model.h5')
+  ```
+  
+  **Bootcamp Usage:** Module A8 (`proyecto_mod8_keras.ipynb`)
+  
+  **Version Requirement:** TensorFlow 2.4+
+</Card>
+
+---
+
+### PyTorch
+
+<Card title="PyTorch" icon="fire">
+  **Official Documentation:** [pytorch.org/docs](https://pytorch.org/docs/stable/index.html)
+  
+  **Purpose:** Dynamic deep learning framework
+  
+  **Key Features:**
+  - Dynamic computational graphs
+  - Pythonic and intuitive API
+  - Strong GPU acceleration
+  - Extensive neural network modules
+  - Popular in research
+  - TorchVision for computer vision
+  
+  **Common Operations:**
+  ```python
+  import torch
+  import torch.nn as nn
+  import torch.optim as optim
+  from torchvision import datasets, transforms
+  
+  # Define model
+  class NeuralNet(nn.Module):
+      def __init__(self):
+          super(NeuralNet, self).__init__()
+          self.flatten = nn.Flatten()
+          self.fc1 = nn.Linear(28*28, 128)
+          self.relu = nn.ReLU()
+          self.dropout = nn.Dropout(0.2)
+          self.fc2 = nn.Linear(128, 10)
+      
+      def forward(self, x):
+          x = self.flatten(x)
+          x = self.fc1(x)
+          x = self.relu(x)
+          x = self.dropout(x)
+          x = self.fc2(x)
+          return x
+  
+  # Initialize
+  model = NeuralNet()
+  criterion = nn.CrossEntropyLoss()
+  optimizer = optim.Adam(model.parameters())
+  
+  # Training loop
+  for epoch in range(num_epochs):
+      for batch_idx, (data, target) in enumerate(train_loader):
+          optimizer.zero_grad()
+          output = model(data)
+          loss = criterion(output, target)
+          loss.backward()
+          optimizer.step()
+  ```
+  
+  **Bootcamp Usage:** Module A8 (`proyecto_mod8_pytorch.ipynb`)
+  
+  **Version Requirement:** PyTorch 1.8+, TorchVision 0.9+
+</Card>
+
+---
+
+### Streamlit
+
+<Card title="Streamlit" icon="display">
+  **Official Documentation:** [docs.streamlit.io](https://docs.streamlit.io/)
+  
+  **Purpose:** Build and deploy data apps quickly
+  
+  **Key Features:**
+  - Pure Python - no HTML/CSS/JS required
+  - Instant hot-reload
+  - Interactive widgets
+  - Built-in charting
+  - Easy deployment
+  - Session state management
+  
+  **Common Operations:**
+  ```python
+  import streamlit as st
+  import pandas as pd
+  import matplotlib.pyplot as plt
+  
+  # Title and text
+  st.title('My Data App')
+  st.write('Welcome to my analysis!')
+  
+  # Load and display data
+  df = pd.read_csv('data.csv')
+  st.dataframe(df)
+  
+  # Interactive widgets
+  option = st.selectbox('Choose a column:', df.columns)
+  slider_value = st.slider('Select a value', 0, 100, 50)
+  
+  # Display charts
+  st.line_chart(df[option])
+  
+  # Matplotlib integration
+  fig, ax = plt.subplots()
+  ax.hist(df[option])
+  st.pyplot(fig)
+  ```
+  
+  **Run Streamlit App:**
+  ```bash
+  streamlit run app.py
+  ```
+  
+  **Bootcamp Usage:** Used in multiple modules for creating interactive demos
+  
+  **Version Requirement:** 1.0+
+</Card>
+
+---
+
+### Additional Libraries
+
+<CardGroup cols={2}>
+  <Card title="lxml" icon="code">
+    **Purpose:** XML and HTML processing
+    
+    Used for parsing web data and working with Excel files
+  </Card>
+  
+  <Card title="requests" icon="globe">
+    **Purpose:** HTTP library for API calls
+    
+    Used for fetching data from web APIs
+  </Card>
+  
+  <Card title="yfinance" icon="chart-line">
+    **Purpose:** Yahoo Finance data
+    
+    Used in Module A3 for financial data analysis
+  </Card>
+  
+  <Card title="openpyxl" icon="file-excel">
+    **Purpose:** Excel file support
+    
+    Backend for Pandas Excel operations
+  </Card>
+</CardGroup>
+
+## Version Requirements
+
+<Info>
+  **Recommended versions** as of the bootcamp creation:
+</Info>
+
+```txt
+Python >= 3.8
+numpy >= 1.19.0
+pandas >= 1.2.0
+matplotlib >= 3.3.0
+seaborn >= 0.11.0
+scikit-learn >= 0.24.0
+tensorflow >= 2.4.0
+keras >= 2.4.0
+torch >= 1.8.0
+torchvision >= 0.9.0
+streamlit >= 1.0.0
+jupyter >= 1.0.0
+lxml >= 4.6.0
+requests >= 2.25.0
+```
+
+### Check Your Versions
+
+```python
+import sys
+import numpy as np
+import pandas as pd
+import matplotlib
+import seaborn as sns
+import sklearn
+import tensorflow as tf
+import torch
+import streamlit as st
+
+print(f"Python: {sys.version}")
+print(f"NumPy: {np.__version__}")
+print(f"Pandas: {pd.__version__}")
+print(f"Matplotlib: {matplotlib.__version__}")
+print(f"Seaborn: {sns.__version__}")
+print(f"Scikit-learn: {sklearn.__version__}")
+print(f"TensorFlow: {tf.__version__}")
+print(f"PyTorch: {torch.__version__}")
+print(f"Streamlit: {st.__version__}")
+```
+
+## Troubleshooting
+
+<AccordionGroup>
+  <Accordion title="Import Errors">
+    **Problem:** `ModuleNotFoundError: No module named 'package'`
+    
+    **Solutions:**
+    1. Install the package: `pip install package-name`
+    2. Check you're using the correct Python environment
+    3. Restart Jupyter kernel after installation
+    4. Verify installation: `pip list | grep package-name`
+  </Accordion>
+  
+  <Accordion title="TensorFlow/PyTorch Not Using GPU">
+    **Problem:** Models training slowly on CPU
+    
+    **Solutions:**
+    1. Check GPU availability:
+       ```python
+       # TensorFlow
+       import tensorflow as tf
+       print(tf.config.list_physical_devices('GPU'))
+       
+       # PyTorch
+       import torch
+       print(torch.cuda.is_available())
+       ```
+    2. Install GPU versions:
+       ```bash
+       # TensorFlow GPU
+       pip install tensorflow-gpu
+       
+       # PyTorch GPU (check pytorch.org for your system)
+       pip install torch torchvision --index-url https://download.pytorch.org/whl/cu118
+       ```
+    3. Install CUDA and cuDNN drivers
+  </Accordion>
+  
+  <Accordion title="Jupyter Kernel Issues">
+    **Problem:** Kernel keeps dying or won't start
+    
+    **Solutions:**
+    1. Restart kernel: Kernel > Restart
+    2. Check for memory issues (close other apps)
+    3. Reinstall kernel:
+       ```bash
+       pip install --upgrade jupyter ipykernel
+       python -m ipykernel install --user
+       ```
+    4. Clear notebook output: Cell > All Output > Clear
+  </Accordion>
+  
+  <Accordion title="Package Conflicts">
+    **Problem:** Incompatible package versions
+    
+    **Solutions:**
+    1. Create a fresh virtual environment
+    2. Install packages one by one to identify conflicts
+    3. Use `pip install --upgrade package-name`
+    4. Check compatibility with `pip check`
+  </Accordion>
+  
+  <Accordion title="Matplotlib Plots Not Showing">
+    **Problem:** Plots don't display in Jupyter
+    
+    **Solution:**
+    Add this magic command at the start of your notebook:
+    ```python
+    %matplotlib inline
+    ```
+    
+    For interactive plots:
+    ```python
+    %matplotlib notebook
+    # or
+    %matplotlib widget
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Additional Resources
+
+### Learning Resources
+
+<CardGroup cols={2}>
+  <Card title="Python" icon="python" href="https://docs.python.org/3/tutorial/">
+    Official Python Tutorial
+  </Card>
+  
+  <Card title="NumPy" icon="calculator" href="https://numpy.org/doc/stable/user/quickstart.html">
+    NumPy Quickstart
+  </Card>
+  
+  <Card title="Pandas" icon="table" href="https://pandas.pydata.org/docs/getting_started/10min.html">
+    10 Minutes to Pandas
+  </Card>
+  
+  <Card title="Matplotlib" icon="chart-line" href="https://matplotlib.org/stable/tutorials/index.html">
+    Matplotlib Tutorials
+  </Card>
+  
+  <Card title="Scikit-learn" icon="brain" href="https://scikit-learn.org/stable/tutorial/index.html">
+    Scikit-learn Tutorials
+  </Card>
+  
+  <Card title="TensorFlow" icon="cube" href="https://www.tensorflow.org/tutorials">
+    TensorFlow Tutorials
+  </Card>
+  
+  <Card title="PyTorch" icon="fire" href="https://pytorch.org/tutorials/">
+    PyTorch Tutorials
+  </Card>
+  
+  <Card title="Streamlit" icon="display" href="https://docs.streamlit.io/library/get-started">
+    Streamlit Get Started
+  </Card>
+</CardGroup>
+
+### Cheat Sheets
+
+<Tip>
+  Quick reference guides:
+  - [NumPy Cheat Sheet](https://numpy.org/doc/stable/user/absolute_beginners.html)
+  - [Pandas Cheat Sheet](https://pandas.pydata.org/Pandas_Cheat_Sheet.pdf)
+  - [Matplotlib Cheat Sheet](https://matplotlib.org/cheatsheets/)
+  - [Scikit-learn Cheat Sheet](https://scikit-learn.org/stable/tutorial/machine_learning_map/)
+</Tip>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Jupyter Notebooks" icon="book" href="/resources/notebooks">
+    Explore the 111+ notebooks that use these tools
+  </Card>
+  
+  <Card title="Datasets" icon="database" href="/resources/datasets">
+    Work with bootcamp datasets
+  </Card>
+  
+  <Card title="Glossary" icon="book-open" href="/resources/glossary">
+    Learn data science terminology
+  </Card>
+  
+  <Card title="Quick Start" icon="rocket" href="/quickstart">
+    Get started with your first project
+  </Card>
+</CardGroup>

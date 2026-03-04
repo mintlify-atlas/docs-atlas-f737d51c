@@ -1,0 +1,468 @@
+---
+title: 'Deep Learning Fundamentals'
+description: 'Learn neural networks, activation functions, and popular frameworks including Keras and PyTorch'
+icon: 'brain'
+---
+
+## Overview
+
+Deep learning uses artificial neural networks with multiple layers to learn hierarchical representations of data. This module covers the fundamentals from **Module A8** of the bootcamp.
+
+<Info>
+You'll learn neural network basics and build image classifiers using both **Keras/TensorFlow** and **PyTorch** frameworks.
+</Info>
+
+## What are Neural Networks?
+
+Neural networks are computing systems inspired by biological neural networks. They consist of:
+
+<CardGroup cols={3}>
+  <Card title="Input Layer" icon="arrow-right-to-bracket">
+    Receives raw data (e.g., pixel values from images)
+  </Card>
+  
+  <Card title="Hidden Layers" icon="layer-group">
+    Transform inputs through learned weights and activations
+  </Card>
+  
+  <Card title="Output Layer" icon="arrow-right-from-bracket">
+    Produces predictions (e.g., class probabilities)
+  </Card>
+</CardGroup>
+
+### The Artificial Neuron
+
+Each neuron performs two operations:
+
+1. **Linear transformation**: Weighted sum of inputs plus bias
+   ```
+   z = w₁x₁ + w₂x₂ + ... + wₙxₙ + b
+   ```
+
+2. **Non-linear activation**: Applies activation function
+   ```
+   a = activation(z)
+   ```
+
+## Activation Functions
+
+Activation functions introduce non-linearity, enabling networks to learn complex patterns.
+
+### ReLU (Rectified Linear Unit)
+
+<Note>
+**Most popular activation for hidden layers**
+
+```
+ReLU(x) = max(0, x)
+```
+
+✓ Fast to compute  
+✓ Mitigates vanishing gradient  
+✓ Sparse activation  
+✗ Can "die" (always output 0)
+</Note>
+
+```python
+import numpy as np
+import matplotlib.pyplot as plt
+
+x = np.linspace(-5, 5, 100)
+relu = np.maximum(0, x)
+
+plt.plot(x, relu, label='ReLU', linewidth=2)
+plt.xlabel('Input')
+plt.ylabel('Output')
+plt.title('ReLU Activation Function')
+plt.grid(True, alpha=0.3)
+plt.legend()
+plt.show()
+```
+
+### Sigmoid
+
+<Note>
+**Used for binary classification output**
+
+```
+σ(x) = 1 / (1 + e⁻ˣ)
+```
+
+✓ Outputs between 0 and 1 (probability)  
+✓ Smooth gradient  
+✗ Vanishing gradient for extreme values  
+✗ Not zero-centered
+</Note>
+
+### Softmax
+
+<Note>
+**Used for multi-class classification output**
+
+```
+Softmax(xᵢ) = e^xᵢ / Σⱼ e^xⱼ
+```
+
+✓ Outputs sum to 1 (probability distribution)  
+✓ Differentiable  
+✓ Handles multiple classes
+</Note>
+
+## Network Architectures
+
+### Dense (Fully Connected) Networks
+
+Every neuron in layer L connects to every neuron in layer L+1.
+
+**Advantages:**
+- Simple to understand and implement
+- Universal function approximators
+- Work well for structured/tabular data
+
+**Disadvantages:**
+- Many parameters (memory and computation)
+- Don't exploit spatial structure in images
+- Prone to overfitting
+
+### Convolutional Neural Networks (CNNs)
+
+CNNs use **convolutional layers** that:
+- Apply small filters across the image
+- Detect local patterns (edges, textures, shapes)
+- Share parameters (fewer weights)
+- Build hierarchical representations
+
+<Tip>
+**CNNs vs Dense Networks for Images**
+
+**Dense networks**: Treat images as flat vectors, ignoring spatial structure. Require many parameters.
+
+**CNNs**: Exploit spatial structure with local filters, achieve better performance with fewer parameters.
+</Tip>
+
+## Building Blocks of Deep Networks
+
+### Layers
+
+<AccordionGroup>
+  <Accordion title="Dense/Linear Layer">
+    Fully connected layer: each neuron connects to all neurons in previous layer.
+    
+    ```python
+    # Keras
+    layers.Dense(128, activation='relu')
+    
+    # PyTorch
+    nn.Linear(784, 128)
+    ```
+  </Accordion>
+  
+  <Accordion title="Convolutional Layer">
+    Applies filters to extract spatial features from images.
+    
+    ```python
+    # Keras
+    layers.Conv2D(32, kernel_size=3, activation='relu')
+    
+    # PyTorch
+    nn.Conv2d(1, 32, kernel_size=3)
+    ```
+  </Accordion>
+  
+  <Accordion title="Pooling Layer">
+    Downsamples feature maps, reducing dimensionality and computation.
+    
+    ```python
+    # Keras
+    layers.MaxPooling2D(pool_size=2)
+    
+    # PyTorch
+    nn.MaxPool2d(2, 2)
+    ```
+  </Accordion>
+  
+  <Accordion title="Dropout Layer">
+    Randomly drops neurons during training to prevent overfitting.
+    
+    ```python
+    # Keras
+    layers.Dropout(0.5)
+    
+    # PyTorch
+    nn.Dropout(0.5)
+    ```
+  </Accordion>
+</AccordionGroup>
+
+### Loss Functions
+
+**Binary Classification:**
+```python
+# Keras
+model.compile(loss='binary_crossentropy', ...)
+
+# PyTorch
+criterion = nn.BCELoss()  # Binary Cross Entropy
+```
+
+**Multi-class Classification:**
+```python
+# Keras
+model.compile(loss='sparse_categorical_crossentropy', ...)
+
+# PyTorch
+criterion = nn.CrossEntropyLoss()
+```
+
+### Optimizers
+
+**Adam** (Adaptive Moment Estimation) is the most popular:
+- Combines momentum and adaptive learning rates
+- Works well with default parameters
+- Fast convergence
+
+```python
+# Keras
+model.compile(optimizer='adam', ...)
+
+# PyTorch
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+```
+
+## Deep Learning Frameworks
+
+### Keras / TensorFlow
+
+<CardGroup cols={2}>
+  <Card title="Pros" icon="thumbs-up">
+    • High-level, beginner-friendly API  
+    • Fast prototyping  
+    • Excellent documentation  
+    • TensorFlow production ecosystem
+  </Card>
+  
+  <Card title="Cons" icon="thumbs-down">
+    • Less flexible for custom operations  
+    • Debugging can be challenging  
+    • Abstraction hides details
+  </Card>
+</CardGroup>
+
+**Example: Simple Binary Classifier**
+
+```python
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+
+# Define model
+model = keras.Sequential([
+    layers.Input(shape=(784,)),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(1, activation='sigmoid')
+])
+
+# Compile
+model.compile(
+    loss='binary_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
+)
+
+# Train
+history = model.fit(
+    x_train, y_train,
+    validation_split=0.2,
+    epochs=10,
+    batch_size=128
+)
+
+# Evaluate
+test_loss, test_acc = model.evaluate(x_test, y_test)
+print(f"Test accuracy: {test_acc:.4f}")
+```
+
+### PyTorch
+
+<CardGroup cols={2}>
+  <Card title="Pros" icon="thumbs-up">
+    • Pythonic, intuitive API  
+    • Flexible and dynamic  
+    • Excellent for research  
+    • Easy debugging
+  </Card>
+  
+  <Card title="Cons" icon="thumbs-down">
+    • More boilerplate code  
+    • Steeper learning curve  
+    • Manual training loop
+  </Card>
+</CardGroup>
+
+**Example: Same Binary Classifier in PyTorch**
+
+```python
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Define model
+class BinaryNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(784, 128)
+        self.fc2 = nn.Linear(128, 1)
+    
+    def forward(self, x):
+        x = x.view(-1, 784)
+        x = F.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        return x
+
+model = BinaryNet()
+criterion = nn.BCELoss()
+optimizer = torch.optim.Adam(model.parameters(), lr=1e-3)
+
+# Training loop
+for epoch in range(10):
+    model.train()
+    for images, labels in train_loader:
+        # Forward pass
+        outputs = model(images)
+        loss = criterion(outputs, labels)
+        
+        # Backward pass
+        optimizer.zero_grad()
+        loss.backward()
+        optimizer.step()
+
+# Evaluate
+model.eval()
+with torch.no_grad():
+    correct = 0
+    total = 0
+    for images, labels in test_loader:
+        outputs = model(images)
+        predicted = (outputs >= 0.5).float()
+        total += labels.size(0)
+        correct += (predicted == labels).sum().item()
+    
+    accuracy = correct / total
+    print(f"Test accuracy: {accuracy:.4f}")
+```
+
+## Training Deep Networks
+
+### Forward Propagation
+
+1. Pass input through network layers
+2. Compute predictions
+3. Calculate loss between predictions and true labels
+
+### Backpropagation
+
+1. Compute gradient of loss with respect to each weight
+2. Use chain rule to propagate gradients backward
+3. Update weights using optimizer
+
+### Training Tips
+
+<CardGroup cols={2}>
+  <Card title="Monitor Overfitting" icon="chart-line">
+    Use validation set. Stop if validation loss increases while training loss decreases.
+  </Card>
+  
+  <Card title="Use Dropout" icon="circle-half-stroke">
+    Add Dropout layers (0.3-0.5) to prevent overfitting, especially in dense layers.
+  </Card>
+  
+  <Card title="Batch Normalization" icon="layer-group">
+    Normalizes layer inputs, speeds up training and improves stability.
+  </Card>
+  
+  <Card title="Data Augmentation" icon="images">
+    For images: random flips, rotations, crops. Increases dataset size and regularizes.
+  </Card>
+</CardGroup>
+
+## Comparing Performance
+
+From the **Fashion-MNIST project** (Module A8):
+
+| Model Type | Test Accuracy (Keras) | Test Accuracy (PyTorch) |
+|------------|----------------------|------------------------|
+| **Dense Network** | ~88% | ~88% |
+| **CNN** | ~90%+ | ~90%+ |
+
+<Note>
+**Key Finding**: CNNs outperform dense networks on image data, achieving ~2-3% higher accuracy with fewer parameters.
+</Note>
+
+## Dataset: Fashion-MNIST
+
+The bootcamp projects use **Fashion-MNIST**, a dataset of 70,000 grayscale images (28×28 pixels) across 10 clothing categories:
+
+0. T-shirt/top (Camiseta/top)
+1. Trouser (Pantalón)
+2. Pullover (Suéter)
+3. Dress (Vestido)
+4. Coat (Abrigo)
+5. Sandal (Sandalia)
+6. Shirt (Camisa)
+7. Sneaker (Zapatilla)
+8. Bag (Bolso)
+9. Ankle boot (Botín)
+
+<Tip>
+Fashion-MNIST is a drop-in replacement for MNIST digits, but more challenging and realistic for demonstrating deep learning concepts.
+</Tip>
+
+## Practical Considerations
+
+### Choosing a Framework
+
+**Use Keras if:**
+- You're a beginner
+- You need fast prototyping
+- You want simple, readable code
+- You're deploying with TensorFlow Serving
+
+**Use PyTorch if:**
+- You need flexibility for custom architectures
+- You're doing research
+- You prefer Pythonic code
+- You want easier debugging
+
+### Hardware Acceleration
+
+Deep learning benefits significantly from GPUs:
+
+```python
+# PyTorch: Check for GPU
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+model = model.to(device)
+
+# Keras/TensorFlow automatically uses GPU if available
+# To force CPU:
+import os
+os.environ['CUDA_VISIBLE_DEVICES'] = '-1'
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Build Neural Networks" icon="hammer" href="/modules/neural-networks">
+    Implement complete models with Keras and PyTorch using FashionMNIST
+  </Card>
+  
+  <Card title="Clustering" icon="diagram-project" href="/modules/clustering">
+    Review clustering techniques for unsupervised learning
+  </Card>
+</CardGroup>
+
+## Resources
+
+- [TensorFlow/Keras Documentation](https://www.tensorflow.org/guide/keras)
+- [PyTorch Tutorials](https://pytorch.org/tutorials/)
+- [Deep Learning Book (Goodfellow et al.)](https://www.deeplearningbook.org/)
+- [Fashion-MNIST Dataset](https://github.com/zalandoresearch/fashion-mnist)

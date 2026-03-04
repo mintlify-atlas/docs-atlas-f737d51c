@@ -1,0 +1,461 @@
+---
+title: 'Environment Setup'
+description: 'Complete guide to setting up your Python data science environment'
+---
+
+# Environment Setup Guide
+
+This guide will help you set up a complete Python development environment for the Data Science Bootcamp. Follow these steps to install Python, create virtual environments, and install all required dependencies.
+
+<Note>
+We recommend creating a dedicated virtual environment called `Bootcamp` for all coursework to keep dependencies isolated and organized.
+</Note>
+
+---
+
+## Prerequisites
+
+### System Requirements
+
+- **Python 3.8 or higher** (3.10 recommended)
+- **4GB RAM minimum** (8GB recommended for larger datasets)
+- **2GB free disk space** for Python, libraries, and datasets
+- **Terminal access** (CMD/PowerShell on Windows, Terminal on macOS/Linux)
+- **Git** (optional, for version control)
+
+### Check Python Installation
+
+Before starting, verify Python is installed:
+
+<CodeGroup>
+```bash Windows
+python --version
+```
+
+```bash macOS/Linux
+python3 --version
+```
+</CodeGroup>
+
+You should see output like `Python 3.10.x` or higher.
+
+---
+
+## Installation Options
+
+You can set up your environment using either **venv** (Python's built-in tool) or **Anaconda/Miniconda** (data science-focused distribution).
+
+### Option 1: Using venv (Recommended for Beginners)
+
+venv is lightweight and comes pre-installed with Python 3.3+.
+
+<Steps>
+  <Step title="Create Virtual Environment">
+    Create a new virtual environment named `Bootcamp`:
+
+    <CodeGroup>
+    ```bash Windows (PowerShell/CMD)
+    python -m venv Bootcamp
+    ```
+
+    ```bash macOS/Linux
+    python3 -m venv Bootcamp
+    ```
+    </CodeGroup>
+
+    This creates a `Bootcamp/` directory containing an isolated Python environment.
+  </Step>
+
+  <Step title="Activate Virtual Environment">
+    Activate the environment to use it:
+
+    <CodeGroup>
+    ```bash Windows (PowerShell)
+    .\Bootcamp\Scripts\Activate.ps1
+    ```
+
+    ```bash Windows (CMD)
+    .\Bootcamp\Scripts\activate.bat
+    ```
+
+    ```bash macOS/Linux
+    source Bootcamp/bin/activate
+    ```
+    </CodeGroup>
+
+    <Note>
+    On Windows PowerShell, if you get an execution policy error, run:
+    ```bash
+    Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+    ```
+    </Note>
+
+    When activated, you'll see `(Bootcamp)` at the start of your terminal prompt.
+  </Step>
+
+  <Step title="Upgrade pip">
+    Update pip to the latest version:
+
+    ```bash
+    pip install --upgrade pip
+    ```
+  </Step>
+
+  <Step title="Install Core Dependencies">
+    Install all required packages for the bootcamp:
+
+    ```bash
+    pip install jupyter numpy pandas matplotlib seaborn scikit-learn tensorflow keras torch torchvision streamlit lxml requests
+    ```
+
+    This installs:
+    - **jupyter**: Interactive notebook environment
+    - **numpy**: Numerical computing library
+    - **pandas**: Data manipulation and analysis
+    - **matplotlib, seaborn**: Data visualization
+    - **scikit-learn**: Machine learning algorithms
+    - **tensorflow, keras**: Deep learning framework
+    - **torch, torchvision**: PyTorch deep learning framework
+    - **streamlit**: Interactive web apps for data science
+    - **lxml, requests**: Web scraping and data loading
+  </Step>
+
+  <Step title="Verify Installation">
+    Verify all packages are installed correctly:
+
+    ```bash
+    pip list
+    ```
+
+    You should see all installed packages with their versions.
+
+    Test core imports:
+
+    ```bash
+    python -c "import numpy, pandas, matplotlib, sklearn; print('All core packages imported successfully!')"
+    ```
+  </Step>
+</Steps>
+
+---
+
+### Option 2: Using Anaconda/Miniconda
+
+Anaconda includes pre-installed data science packages and its own package manager.
+
+<Steps>
+  <Step title="Install Anaconda or Miniconda">
+    Download and install from:
+    - **Anaconda** (full distribution, ~3GB): [anaconda.com/download](https://www.anaconda.com/download)
+    - **Miniconda** (minimal installer, ~400MB): [docs.conda.io/en/latest/miniconda.html](https://docs.conda.io/en/latest/miniconda.html)
+
+    Follow the installer instructions for your operating system.
+  </Step>
+
+  <Step title="Create Conda Environment">
+    Create a new environment with Python 3.10:
+
+    ```bash
+    conda create -n Bootcamp python=3.10
+    ```
+
+    Confirm by typing `y` when prompted.
+  </Step>
+
+  <Step title="Activate Conda Environment">
+    Activate the environment:
+
+    <CodeGroup>
+    ```bash Windows
+    conda activate Bootcamp
+    ```
+
+    ```bash macOS/Linux
+    conda activate Bootcamp
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Install Packages">
+    Install packages using conda and pip:
+
+    ```bash
+    # Install from conda-forge channel (preferred for data science)
+    conda install -c conda-forge jupyter numpy pandas matplotlib seaborn scikit-learn
+    
+    # Install remaining packages with pip
+    pip install tensorflow keras torch torchvision streamlit lxml requests
+    ```
+  </Step>
+
+  <Step title="Verify Installation">
+    Check installed packages:
+
+    ```bash
+    conda list
+    ```
+  </Step>
+</Steps>
+
+---
+
+## Project-Specific Setup
+
+### Installing from requirements.txt
+
+Many projects include a `requirements.txt` file listing all dependencies. To install from this file:
+
+<Steps>
+  <Step title="Navigate to Project Directory">
+    ```bash
+    cd path/to/project
+    ```
+  </Step>
+
+  <Step title="Install Requirements">
+    ```bash
+    pip install -r requirements.txt
+    ```
+  </Step>
+</Steps>
+
+### Example: Module A3 Project Setup
+
+For the Data Preparation project (Module A3):
+
+<CodeGroup>
+```bash Windows
+python -m venv .venv
+.venv\Scripts\activate
+pip install -r requirements.txt
+```
+
+```bash macOS/Linux
+python3 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements.txt
+```
+</CodeGroup>
+
+The `requirements.txt` for this module includes:
+```text
+numpy
+pandas
+lxml
+requests
+streamlit
+```
+
+---
+
+## Launching Jupyter Notebook
+
+Jupyter notebooks are the primary tool for interactive data science work.
+
+<Steps>
+  <Step title="Ensure Virtual Environment is Active">
+    You should see `(Bootcamp)` in your terminal prompt.
+  </Step>
+
+  <Step title="Launch Jupyter">
+    ```bash
+    jupyter notebook
+    ```
+
+    This will:
+    1. Start the Jupyter server
+    2. Open your default web browser
+    3. Display the notebook interface at `http://localhost:8888`
+  </Step>
+
+  <Step title="Create or Open Notebook">
+    - Click **New → Python 3** to create a new notebook
+    - Navigate to existing `.ipynb` files to open them
+  </Step>
+
+  <Step title="Stop Jupyter Server">
+    When finished, press `Ctrl+C` in the terminal where Jupyter is running, then confirm with `y`.
+  </Step>
+</Steps>
+
+---
+
+## Running Python Scripts
+
+### Basic Execution
+
+With your virtual environment activated:
+
+<CodeGroup>
+```bash Windows
+python script_name.py
+```
+
+```bash macOS/Linux
+python3 script_name.py
+```
+</CodeGroup>
+
+### Example: Running Module 2 Demos
+
+From the Bootcamp repository:
+
+```bash
+# Navigate to lesson directory
+cd Bootcamp-main/Modulo2/Leccion2
+
+# Run the demo
+python demo.py
+
+# Run a specific example
+python ejemplo.py
+```
+
+---
+
+## Running Streamlit Dashboards
+
+Several projects include interactive Streamlit dashboards.
+
+<Steps>
+  <Step title="Ensure Dependencies are Installed">
+    ```bash
+    pip install streamlit
+    ```
+  </Step>
+
+  <Step title="Run the Dashboard">
+    ```bash
+    streamlit run dashboard.py
+    ```
+
+    This will:
+    1. Start the Streamlit server
+    2. Open your browser to `http://localhost:8501`
+  </Step>
+
+  <Step title="Interact with Dashboard">
+    The dashboard will update in real-time as you interact with it.
+  </Step>
+
+  <Step title="Stop Streamlit">
+    Press `Ctrl+C` in the terminal.
+  </Step>
+</Steps>
+
+---
+
+## Managing Your Environment
+
+### Deactivating Virtual Environment
+
+When you're done working:
+
+<CodeGroup>
+```bash venv
+deactivate
+```
+
+```bash conda
+conda deactivate
+```
+</CodeGroup>
+
+### Removing Virtual Environment
+
+To completely remove an environment:
+
+<CodeGroup>
+```bash venv
+# Simply delete the directory
+rm -rf Bootcamp/  # macOS/Linux
+rmdir /s Bootcamp  # Windows
+```
+
+```bash conda
+conda env remove -n Bootcamp
+```
+</CodeGroup>
+
+### Exporting Dependencies
+
+To share your environment setup:
+
+<CodeGroup>
+```bash venv
+pip freeze > requirements.txt
+```
+
+```bash conda
+conda env export > environment.yml
+```
+</CodeGroup>
+
+---
+
+## Common Issues and Solutions
+
+### Issue: "Python not found" or "Command not found"
+
+**Solution**: 
+- Ensure Python is added to your system PATH during installation
+- Try `python3` instead of `python` on macOS/Linux
+- Reinstall Python with "Add to PATH" option checked
+
+### Issue: Permission denied when installing packages
+
+**Solution**:
+- Ensure your virtual environment is activated
+- Don't use `sudo` with pip in a virtual environment
+- On Windows, run terminal as Administrator if needed
+
+### Issue: Module not found after installation
+
+**Solution**:
+- Verify virtual environment is activated
+- Check you're using the correct Python interpreter: `which python` (macOS/Linux) or `where python` (Windows)
+- Reinstall the package: `pip install --force-reinstall package-name`
+
+### Issue: Jupyter kernel not found
+
+**Solution**:
+```bash
+python -m ipykernel install --user --name=Bootcamp
+```
+
+<Warning>
+Always activate your virtual environment before installing packages or running scripts. This prevents conflicts with system Python packages.
+</Warning>
+
+---
+
+## Best Practices
+
+1. **One environment per project**: Create separate environments for different projects to avoid dependency conflicts
+
+2. **Keep requirements updated**: Regularly update your `requirements.txt` as you add packages
+
+3. **Use version control**: Git-ignore your virtual environment folder (it can be recreated from requirements.txt)
+
+4. **Document dependencies**: Always include a `requirements.txt` or `environment.yml` with your projects
+
+5. **Regular updates**: Periodically update packages for security and bug fixes:
+   ```bash
+   pip list --outdated
+   pip install --upgrade package-name
+   ```
+
+---
+
+## Next Steps
+
+Now that your environment is set up, you're ready to start coding!
+
+<CardGroup cols={2}>
+  <Card title="Bootcamp Overview" icon="book" href="/overview">
+    Review the complete curriculum and module structure
+  </Card>
+  <Card title="Start Module A2" icon="code" href="#">
+    Begin with Python fundamentals and your first project
+  </Card>
+</CardGroup>

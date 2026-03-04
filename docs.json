@@ -1,122 +1,111 @@
 {
   "$schema": "https://mintlify.com/docs.json",
-  "theme": "mint",
-  "name": "Mint Starter Kit",
+  "name": "Data Science Bootcamp - Talento Digital",
+  "theme": "palm",
   "colors": {
-    "primary": "#16A34A",
-    "light": "#07C983",
-    "dark": "#15803D"
+    "primary": "#3B82F6",
+    "light": "#60A5FA",
+    "dark": "#1E40AF"
   },
-  "favicon": "/favicon.svg",
+  "navbar": {
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/yuri19762008/000_ANALISTA-DATOS---TALENTO-DIGITAL"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/yuri19762008/000_ANALISTA-DATOS---TALENTO-DIGITAL"
+    }
+  },
   "navigation": {
     "tabs": [
       {
-        "tab": "Guides",
+        "tab": "Documentation",
         "groups": [
           {
-            "group": "Getting started",
+            "group": "Getting Started",
             "pages": [
               "index",
-              "quickstart",
-              "development"
+              "overview",
+              "setup"
             ]
           },
           {
-            "group": "Customization",
+            "group": "Python Fundamentals",
             "pages": [
-              "essentials/settings",
-              "essentials/navigation"
+              "modules/python-basics",
+              "modules/python-oop",
+              "modules/python-projects"
             ]
           },
           {
-            "group": "Writing content",
+            "group": "Data Preparation & Analysis",
             "pages": [
-              "essentials/markdown",
-              "essentials/code",
-              "essentials/images",
-              "essentials/reusable-snippets"
+              "modules/numpy-pandas",
+              "modules/data-wrangling",
+              "modules/exploratory-analysis"
             ]
           },
           {
-            "group": "AI tools",
+            "group": "Statistical Inference",
             "pages": [
-              "ai-tools/cursor",
-              "ai-tools/claude-code",
-              "ai-tools/windsurf"
+              "modules/probability",
+              "modules/distributions",
+              "modules/hypothesis-testing"
+            ]
+          },
+          {
+            "group": "Machine Learning",
+            "pages": [
+              "modules/supervised-learning",
+              "modules/regression-models",
+              "modules/classification-models",
+              "modules/model-evaluation"
+            ]
+          },
+          {
+            "group": "Advanced Topics",
+            "pages": [
+              "modules/unsupervised-learning",
+              "modules/clustering",
+              "modules/deep-learning",
+              "modules/neural-networks"
             ]
           }
         ]
       },
       {
-        "tab": "API reference",
+        "tab": "Projects",
         "groups": [
           {
-            "group": "API documentation",
+            "group": "Course Projects",
             "pages": [
-              "api-reference/introduction"
+              "projects/contact-manager",
+              "projects/data-preparation",
+              "projects/eda-comercio",
+              "projects/statistical-inference",
+              "projects/regression-ecommerce",
+              "projects/customer-segmentation",
+              "projects/deep-learning"
             ]
-          },
+          }
+        ]
+      },
+      {
+        "tab": "Resources",
+        "groups": [
           {
-            "group": "Endpoint examples",
+            "group": "Learning Resources",
             "pages": [
-              "api-reference/endpoint/get",
-              "api-reference/endpoint/create",
-              "api-reference/endpoint/delete",
-              "api-reference/endpoint/webhook"
+              "resources/notebooks",
+              "resources/datasets",
+              "resources/tools",
+              "resources/glossary"
             ]
           }
         ]
       }
-    ],
-    "global": {
-      "anchors": [
-        {
-          "anchor": "Documentation",
-          "href": "https://mintlify.com/docs",
-          "icon": "book-open-cover"
-        },
-        {
-          "anchor": "Blog",
-          "href": "https://mintlify.com/blog",
-          "icon": "newspaper"
-        }
-      ]
-    }
-  },
-  "logo": {
-    "light": "/logo/light.svg",
-    "dark": "/logo/dark.svg"
-  },
-  "navbar": {
-    "links": [
-      {
-        "label": "Support",
-        "href": "mailto:hi@mintlify.com"
-      }
-    ],
-    "primary": {
-      "type": "button",
-      "label": "Dashboard",
-      "href": "https://dashboard.mintlify.com"
-    }
-  },
-  "contextual": {
-    "options": [
-     "copy",
-     "view",
-     "chatgpt",
-     "claude",
-     "perplexity",
-     "mcp",
-     "cursor",
-     "vscode"
-   ]
-  },
-  "footer": {
-    "socials": {
-      "x": "https://x.com/mintlify",
-      "github": "https://github.com/mintlify",
-      "linkedin": "https://linkedin.com/company/mintlify"
-    }
+    ]
   }
 }

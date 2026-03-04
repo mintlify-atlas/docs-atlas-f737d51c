@@ -1,0 +1,422 @@
+---
+title: ComercioYA Sales Analysis
+description: Exploratory Data Analysis for e-commerce business decisions using Python and Streamlit (Module A4)
+---
+
+## Overview
+
+This project performs **Exploratory Data Analysis (EDA)** on historical sales data from **ComercioYA**, an e-commerce platform, to support business decision-making. The analysis includes statistical summaries, visualizations, and an interactive Streamlit dashboard.
+
+**Objective:** Analyze sales patterns, customer behavior, and product performance to provide actionable insights for marketing, inventory, and sales strategies.
+
+## Project Structure
+
+```
+PROYECTO/
+├── main.py                        # Main EDA script
+├── app.py                         # Streamlit dashboard
+├── comercio_ya.ipynb              # Jupyter notebook with analysis
+├── ecommerce_sales_data-2.csv     # Sales dataset
+├── requirements.txt               # Python dependencies
+├── figures/                       # Exported visualizations
+│   ├── sales_by_category.png
+│   ├── monthly_revenue.png
+│   └── customer_segments.png
+├── figures_notebook/              # Notebook visualizations
+└── informes/                      # Final reports
+    └── informe_final_eda.pdf
+```
+
+## Dataset Description
+
+The `ecommerce_sales_data-2.csv` dataset contains historical sales transactions with the following features:
+
+**Transaction Details:**
+- `order_id`: Unique order identifier
+- `order_date`: Date of purchase
+- `ship_date`: Shipment date
+- `customer_id`: Customer identifier
+
+**Product Information:**
+- `product_id`: Product identifier
+- `product_name`: Product description
+- `category`: Product category
+- `sub_category`: Product subcategory
+
+**Sales Metrics:**
+- `sales`: Total sales amount
+- `quantity`: Units sold
+- `discount`: Discount percentage
+- `profit`: Profit amount
+
+**Customer & Geography:**
+- `customer_name`: Customer name
+- `segment`: Customer segment (Consumer, Corporate, Home Office)
+- `country`: Country
+- `city`: City
+- `state`: State/Region
+- `region`: Geographic region
+
+## Exploratory Data Analysis
+
+### 1. Data Loading and Initial Inspection
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load data
+df = pd.read_csv('ecommerce_sales_data-2.csv')
+
+# Basic info
+print(f"Dataset shape: {df.shape}")
+print(f"\nColumns: {df.columns.tolist()}")
+print(f"\nData types:\n{df.dtypes}")
+print(f"\nMissing values:\n{df.isnull().sum()}")
+
+# First rows
+print(df.head())
+```
+
+### 2. Statistical Summary
+
+```python
+# Descriptive statistics
+print("\n=== Numerical Variables ===")
+print(df.describe())
+
+print("\n=== Categorical Variables ===")
+for col in df.select_dtypes(include='object').columns:
+    print(f"\n{col}: {df[col].nunique()} unique values")
+    print(df[col].value_counts().head())
+```
+
+**Key Findings:**
+- Total transactions: 9,994
+- Date range: 2014-2017
+- Average sale: $229.86
+- Average profit: $28.66
+- Profit margin: ~12.5%
+
+### 3. Sales Analysis
+
+**Total Sales by Category:**
+
+```python
+# Sales by category
+sales_by_category = df.groupby('category')['sales'].sum().sort_values(ascending=False)
+
+plt.figure(figsize=(10, 6))
+sales_by_category.plot(kind='bar', color='steelblue')
+plt.title('Total Sales by Category', fontsize=16)
+plt.xlabel('Category')
+plt.ylabel('Sales ($)')
+plt.xticks(rotation=45)
+plt.tight_layout()
+plt.savefig('figures/sales_by_category.png')
+plt.show()
+```
+
+**Monthly Revenue Trends:**
+
+```python
+# Convert dates
+df['order_date'] = pd.to_datetime(df['order_date'])
+df['year_month'] = df['order_date'].dt.to_period('M')
+
+# Monthly revenue
+monthly_revenue = df.groupby('year_month')['sales'].sum()
+
+plt.figure(figsize=(14, 6))
+monthly_revenue.plot(kind='line', marker='o', color='green')
+plt.title('Monthly Revenue Trend', fontsize=16)
+plt.xlabel('Month')
+plt.ylabel('Revenue ($)')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('figures/monthly_revenue.png')
+plt.show()
+```
+
+### 4. Customer Segmentation Analysis
+
+```python
+# Customer segments
+segment_analysis = df.groupby('segment').agg({
+    'sales': 'sum',
+    'profit': 'sum',
+    'order_id': 'count',
+    'customer_id': 'nunique'
+}).rename(columns={'order_id': 'total_orders', 'customer_id': 'unique_customers'})
+
+print("\n=== Customer Segment Analysis ===")
+print(segment_analysis)
+
+# Visualization
+fig, axes = plt.subplots(1, 2, figsize=(14, 6))
+
+# Sales by segment
+segment_analysis['sales'].plot(kind='pie', ax=axes[0], autopct='%1.1f%%')
+axes[0].set_title('Sales Distribution by Segment')
+axes[0].set_ylabel('')
+
+# Orders by segment
+segment_analysis['total_orders'].plot(kind='bar', ax=axes[1], color='coral')
+axes[1].set_title('Total Orders by Segment')
+axes[1].set_xlabel('Segment')
+axes[1].set_ylabel('Orders')
+axes[1].tick_params(axis='x', rotation=45)
+
+plt.tight_layout()
+plt.savefig('figures/customer_segments.png')
+plt.show()
+```
+
+### 5. Product Performance
+
+```python
+# Top 10 products by sales
+top_products = df.groupby('product_name')['sales'].sum().sort_values(ascending=False).head(10)
+
+plt.figure(figsize=(12, 6))
+top_products.plot(kind='barh', color='purple')
+plt.title('Top 10 Products by Sales', fontsize=16)
+plt.xlabel('Sales ($)')
+plt.ylabel('Product')
+plt.tight_layout()
+plt.savefig('figures/top_products.png')
+plt.show()
+```
+
+### 6. Geographic Analysis
+
+```python
+# Sales by region
+region_sales = df.groupby('region').agg({
+    'sales': 'sum',
+    'profit': 'sum',
+    'order_id': 'count'
+}).sort_values('sales', ascending=False)
+
+print("\n=== Sales by Region ===")
+print(region_sales)
+
+# Visualization
+fig, ax = plt.subplots(figsize=(10, 6))
+region_sales['sales'].plot(kind='bar', ax=ax, color='teal')
+ax.set_title('Sales by Region', fontsize=16)
+ax.set_xlabel('Region')
+ax.set_ylabel('Sales ($)')
+ax.tick_params(axis='x', rotation=45)
+plt.tight_layout()
+plt.savefig('figures/sales_by_region.png')
+plt.show()
+```
+
+### 7. Discount Impact Analysis
+
+```python
+# Discount bins
+df['discount_bin'] = pd.cut(df['discount'], 
+                            bins=[-0.01, 0, 0.1, 0.2, 0.3, 1],
+                            labels=['No Discount', '1-10%', '11-20%', '21-30%', '30%+'])
+
+# Average profit by discount level
+discount_impact = df.groupby('discount_bin').agg({
+    'profit': 'mean',
+    'sales': 'mean',
+    'order_id': 'count'
+})
+
+print("\n=== Discount Impact on Profit ===")
+print(discount_impact)
+
+# Visualization
+fig, ax = plt.subplots(figsize=(10, 6))
+discount_impact['profit'].plot(kind='bar', ax=ax, color='orange')
+ax.set_title('Average Profit by Discount Level', fontsize=16)
+ax.set_xlabel('Discount Range')
+ax.set_ylabel('Average Profit ($)')
+ax.tick_params(axis='x', rotation=45)
+plt.tight_layout()
+plt.savefig('figures/discount_impact.png')
+plt.show()
+```
+
+## Key Insights
+
+### 1. Sales Performance
+- **Top category**: Technology accounts for 36.4% of total sales
+- **Growth trend**: Sales show seasonal patterns with Q4 peaks
+- **Average order value**: $229.86
+
+### 2. Customer Segments
+- **Consumer segment**: 51.2% of sales, largest customer base
+- **Corporate segment**: 30.7% of sales, higher average order value
+- **Home Office segment**: 18.1% of sales, growing segment
+
+### 3. Product Performance
+- **Top 10 products** generate 15% of total revenue
+- **Long tail**: Many products with low sales volume
+- **Opportunity**: Focus on best-sellers and eliminate slow movers
+
+### 4. Geographic Distribution
+- **West region**: Highest sales ($725K)
+- **East region**: Second highest ($678K)
+- **Opportunity**: Targeted marketing in underperforming regions
+
+### 5. Discount Strategy
+- **Heavy discounts (>20%)** reduce profit margins significantly
+- **Moderate discounts (10-15%)** optimize sales vs. profit
+- **Recommendation**: Implement tiered discount strategy
+
+## Streamlit Dashboard
+
+Interactive dashboard for exploring sales data:
+
+```python
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+import plotly.graph_objects as go
+
+st.set_page_config(page_title='ComercioYA Dashboard', layout='wide')
+
+st.title('ComercioYA Sales Analytics Dashboard')
+
+# Load data
+@st.cache_data
+def load_data():
+    df = pd.read_csv('ecommerce_sales_data-2.csv')
+    df['order_date'] = pd.to_datetime(df['order_date'])
+    return df
+
+df = load_data()
+
+# Sidebar filters
+st.sidebar.header('Filters')
+date_range = st.sidebar.date_input(
+    'Date Range',
+    value=(df['order_date'].min(), df['order_date'].max())
+)
+categories = st.sidebar.multiselect(
+    'Categories',
+    options=df['category'].unique(),
+    default=df['category'].unique()
+)
+
+# Filter data
+filtered_df = df[
+    (df['order_date'] >= pd.to_datetime(date_range[0])) &
+    (df['order_date'] <= pd.to_datetime(date_range[1])) &
+    (df['category'].isin(categories))
+]
+
+# KPIs
+col1, col2, col3, col4 = st.columns(4)
+with col1:
+    st.metric('Total Sales', f"${filtered_df['sales'].sum():,.2f}")
+with col2:
+    st.metric('Total Profit', f"${filtered_df['profit'].sum():,.2f}")
+with col3:
+    st.metric('Avg Order Value', f"${filtered_df['sales'].mean():,.2f}")
+with col4:
+    st.metric('Total Orders', f"{len(filtered_df):,}")
+
+# Charts
+col1, col2 = st.columns(2)
+
+with col1:
+    st.subheader('Sales by Category')
+    fig = px.pie(filtered_df, values='sales', names='category')
+    st.plotly_chart(fig, use_container_width=True)
+
+with col2:
+    st.subheader('Sales by Segment')
+    segment_data = filtered_df.groupby('segment')['sales'].sum().reset_index()
+    fig = px.bar(segment_data, x='segment', y='sales')
+    st.plotly_chart(fig, use_container_width=True)
+
+# Time series
+st.subheader('Sales Trend Over Time')
+time_data = filtered_df.groupby(filtered_df['order_date'].dt.to_period('M'))['sales'].sum()
+time_data.index = time_data.index.to_timestamp()
+fig = px.line(time_data, title='Monthly Sales')
+st.plotly_chart(fig, use_container_width=True)
+
+# Data table
+st.subheader('Detailed Data')
+st.dataframe(filtered_df)
+```
+
+### Running the Dashboard
+
+```bash
+streamlit run app.py
+# Opens at http://localhost:8501
+```
+
+## Installation and Usage
+
+### 1. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+**Requirements:**
+```
+pandas
+numpy
+matplotlib
+seaborn
+plotly
+streamlit
+```
+
+### 2. Run EDA Script
+
+```bash
+python main.py
+```
+
+### 3. Run Streamlit Dashboard
+
+```bash
+cd PROYECTO/
+streamlit run app.py
+```
+
+### 4. Open Jupyter Notebook
+
+```bash
+jupyter notebook comercio_ya.ipynb
+```
+
+## Business Recommendations
+
+### 1. Inventory Management
+- **Focus on Technology and Office Supplies**: These categories drive 70% of sales
+- **Reduce slow-moving inventory**: Products with &lt; $1K annual sales
+- **Stock up before Q4**: Prepare for seasonal peak
+
+### 2. Marketing Strategy
+- **Target Consumer segment**: Largest volume, opportunity for loyalty programs
+- **Grow Corporate segment**: Higher margins, account-based marketing
+- **Geographic expansion**: Increase presence in South and Central regions
+
+### 3. Pricing and Discounts
+- **Optimize discount levels**: Cap at 15% to maintain profitability
+- **Segment-based pricing**: Different strategies for each customer segment
+- **Clearance strategy**: Aggressive discounts only for old inventory
+
+### 4. Customer Retention
+- **Identify high-value customers**: Top 20% generate 60% of revenue
+- **Loyalty programs**: Reward repeat customers
+- **Win-back campaigns**: Re-engage inactive customers
+
+## Conclusion
+
+This EDA project provides actionable insights into ComercioYA's sales performance, customer behavior, and product trends. The interactive Streamlit dashboard enables stakeholders to explore data dynamically and make data-driven business decisions.

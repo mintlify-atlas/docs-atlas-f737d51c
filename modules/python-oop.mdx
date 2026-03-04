@@ -1,0 +1,564 @@
+---
+title: 'Object-Oriented Programming'
+description: 'Learn Python OOP concepts including classes, objects, inheritance, encapsulation, and properties'
+icon: 'cube'
+---
+
+## Introduction to OOP
+
+Object-Oriented Programming (OOP) is a programming paradigm that organizes code around objects that contain both data (attributes) and behavior (methods). Python's OOP features make it easy to write maintainable, reusable code.
+
+## Classes and Objects
+
+### Defining a Class
+
+A class is a blueprint for creating objects. Let's look at a real example from a contact management system:
+
+```python
+class Contact:
+    """
+    Clase que representa un contacto.
+    
+    Atributos:
+        nombre (str): Nombre del contacto
+        telefono (str): Teléfono del contacto
+        email (str): Email del contacto
+        direccion (str): Dirección del contacto
+    """
+    
+    def __init__(self, nombre: str, telefono: str, email: str, direccion: str):
+        self._nombre = nombre
+        self._telefono = telefono
+        self._email = email
+        self._direccion = direccion
+```
+
+<Note>
+**The `__init__` method** is a special method called a constructor. It runs automatically when you create a new instance of the class.
+</Note>
+
+### Creating Objects
+
+Once you have a class, you can create instances (objects) of it:
+
+```python
+# Creating a new contact
+contacto = Contact(
+    "Juan García",
+    "+56912345678",
+    "juan@example.com",
+    "Calle Principal 123"
+)
+
+print(contacto.nombre)  # Access attribute
+```
+
+## Encapsulation
+
+### Private Attributes
+
+In Python, attributes prefixed with an underscore (`_`) are considered private by convention:
+
+<Tabs>
+  <Tab title="Private Attributes">
+    ```python
+    class Contact:
+        def __init__(self, nombre: str, telefono: str, email: str, direccion: str):
+            self._nombre = nombre        # Private attribute
+            self._telefono = telefono    # Private attribute
+            self._email = email          # Private attribute
+            self._direccion = direccion  # Private attribute
+    ```
+    
+    The underscore prefix indicates that these attributes should not be accessed directly from outside the class.
+  </Tab>
+  
+  <Tab title="Why Encapsulation?">
+    Encapsulation provides several benefits:
+    
+    1. **Data Protection**: Prevents direct modification of sensitive data
+    2. **Validation**: Allows you to validate data before setting it
+    3. **Flexibility**: You can change internal implementation without breaking external code
+    4. **Maintainability**: Makes code easier to understand and maintain
+  </Tab>
+</Tabs>
+
+### Properties (Getters and Setters)
+
+Python uses the `@property` decorator to create getters and setters:
+
+<CodeGroup>
+```python Getters (Read Access)
+class Contact:
+    # ... __init__ method ...
+    
+    @property
+    def nombre(self) -> str:
+        return self._nombre
+    
+    @property
+    def telefono(self) -> str:
+        return self._telefono
+    
+    @property
+    def email(self) -> str:
+        return self._email
+    
+    @property
+    def direccion(self) -> str:
+        return self._direccion
+```
+
+```python Setters (Write Access with Validation)
+class Contact:
+    # ... properties ...
+    
+    @nombre.setter
+    def nombre(self, valor: str):
+        if not valor.strip():
+            raise ValueError("El nombre no puede estar vacío")
+        self._nombre = valor
+    
+    @email.setter
+    def email(self, valor: str):
+        if not valor.strip():
+            raise ValueError("El email no puede estar vacío")
+        self._email = valor
+    
+    @direccion.setter
+    def direccion(self, valor: str):
+        if not valor.strip():
+            raise ValueError("La dirección no puede estar vacía")
+        self._direccion = valor
+```
+
+```python Using Properties
+# Creating a contact
+contacto = Contact(
+    "Juan García",
+    "+56912345678",
+    "juan@example.com",
+    "Calle Principal 123"
+)
+
+# Reading (uses getter)
+print(contacto.nombre)  # Output: Juan García
+
+# Writing (uses setter)
+contacto.nombre = "María García"  # Valid
+print(contacto.nombre)  # Output: María García
+
+# Validation in action
+try:
+    contacto.nombre = ""  # This will raise ValueError
+except ValueError as e:
+    print(f"Error: {e}")
+```
+</CodeGroup>
+
+<Note>
+**Type Hints**: The `-> str` syntax indicates the return type of the method. While optional, type hints improve code readability and enable better IDE support.
+</Note>
+
+## Special Methods (Dunder Methods)
+
+Special methods (also called magic methods or dunder methods) allow you to define how objects behave with built-in Python operations:
+
+<Accordion title="__str__ and __repr__">
+These methods control how objects are converted to strings:
+
+```python
+class Contact:
+    # ... other methods ...
+    
+    def __str__(self) -> str:
+        """User-friendly string representation"""
+        return (
+            f"Nombre: {self._nombre}\n"
+            f"Teléfono: {self._telefono}\n"
+            f"Email: {self._email}\n"
+            f"Dirección: {self._direccion}"
+        )
+    
+    def __repr__(self) -> str:
+        """Developer-friendly representation"""
+        return f"Contact('{self._nombre}', '{self._telefono}', '{self._email}', '{self._direccion}')"
+
+# Usage
+contacto = Contact("Juan García", "+56912345678", "juan@example.com", "Calle 123")
+
+print(contacto)  # Uses __str__
+# Output:
+# Nombre: Juan García
+# Teléfono: +56912345678
+# Email: juan@example.com
+# Dirección: Calle 123
+
+print(repr(contacto))  # Uses __repr__
+# Output: Contact('Juan García', '+56912345678', 'juan@example.com', 'Calle 123')
+```
+</Accordion>
+
+<Accordion title="Common Special Methods">
+| Method | Purpose | Example |
+|--------|---------|----------|
+| `__init__` | Constructor | `obj = MyClass()` |
+| `__str__` | String representation | `str(obj)`, `print(obj)` |
+| `__repr__` | Developer representation | `repr(obj)` |
+| `__len__` | Length | `len(obj)` |
+| `__eq__` | Equality | `obj1 == obj2` |
+| `__lt__` | Less than | `obj1 < obj2` |
+| `__add__` | Addition | `obj1 + obj2` |
+</Accordion>
+
+## Instance Methods vs Static Methods
+
+<Tabs>
+  <Tab title="Instance Methods">
+    Instance methods operate on an instance of the class and have access to `self`:
+    
+    ```python
+    class Contact:
+        def __init__(self, nombre: str, telefono: str, email: str, direccion: str):
+            self._nombre = nombre
+            self._telefono = telefono
+            self._email = email
+            self._direccion = direccion
+        
+        def to_dict(self) -> dict:
+            """Convert contact to dictionary"""
+            return {
+                "nombre": self._nombre,
+                "telefono": self._telefono,
+                "email": self._email,
+                "direccion": self._direccion,
+            }
+    
+    # Usage
+    contacto = Contact("Juan", "+56912345678", "juan@example.com", "Calle 123")
+    datos = contacto.to_dict()
+    print(datos)
+    ```
+  </Tab>
+  
+  <Tab title="Static Methods">
+    Static methods don't operate on an instance and use the `@staticmethod` decorator:
+    
+    ```python
+    class Contact:
+        # ... other methods ...
+        
+        @staticmethod
+        def from_dict(data: dict) -> "Contact":
+            """Create a Contact from a dictionary"""
+            return Contact(
+                data["nombre"],
+                data["telefono"],
+                data["email"],
+                data["direccion"],
+            )
+    
+    # Usage (no instance needed)
+    datos = {
+        "nombre": "Pedro López",
+        "telefono": "+56987654321",
+        "email": "pedro@example.com",
+        "direccion": "Avenida Central 789"
+    }
+    contacto = Contact.from_dict(datos)
+    print(contacto.nombre)
+    ```
+  </Tab>
+</Tabs>
+
+## Complex Classes: Contact Manager
+
+Let's look at a more complex class that manages a collection of contacts:
+
+```python
+import json
+import os
+from contact import Contact
+
+class ContactManager:
+    """
+    Gestor de contactos.
+    
+    Responsabilidades:
+    - Agregar, editar y eliminar contactos
+    - Buscar contactos por nombre o teléfono
+    - Persistencia de datos en JSON
+    - Gestión de la lista de contactos
+    """
+    
+    def __init__(self, archivo_datos: str = "contactos.json"):
+        self._archivo_datos = archivo_datos
+        self._contactos: list[Contact] = []
+        self._cargar_contactos()
+    
+    def _cargar_contactos(self):
+        """Carga los contactos desde el archivo JSON"""
+        if os.path.exists(self._archivo_datos):
+            try:
+                with open(self._archivo_datos, "r", encoding="utf-8") as archivo:
+                    datos = json.load(archivo)
+                    self._contactos = [Contact.from_dict(c) for c in datos]
+                print(f"✅ {len(self._contactos)} contactos cargados correctamente")
+            except Exception as e:
+                print(f"⚠️  Error al cargar contactos: {e}")
+                self._contactos = []
+        else:
+            self._contactos = []
+    
+    def _guardar_contactos(self):
+        """Guarda los contactos en el archivo JSON"""
+        try:
+            datos = [c.to_dict() for c in self._contactos]
+            with open(self._archivo_datos, "w", encoding="utf-8") as archivo:
+                json.dump(datos, archivo, indent=2, ensure_ascii=False)
+        except Exception as e:
+            raise Exception(f"Error al guardar contactos: {e}")
+```
+
+<Note>
+**Private Methods**: Methods prefixed with `_` (like `_cargar_contactos`) are internal helper methods not meant to be called from outside the class.
+</Note>
+
+### CRUD Operations
+
+The ContactManager class implements Create, Read, Update, and Delete operations:
+
+<Accordion title="Create: Adding Contacts">
+```python
+class ContactManager:
+    # ... other methods ...
+    
+    def agregar_contacto(self, nombre: str, telefono: str, email: str, direccion: str):
+        """Agrega un nuevo contacto"""
+        if self.buscar_por_telefono(telefono):
+            raise ValueError(f"Ya existe un contacto con el teléfono '{telefono}'")
+        
+        nuevo_contacto = Contact(nombre, telefono, email, direccion)
+        self._contactos.append(nuevo_contacto)
+        self._guardar_contactos()
+
+# Usage
+gestor = ContactManager()
+gestor.agregar_contacto(
+    "Ana Silva",
+    "+56912345678",
+    "ana@example.com",
+    "Paseo del Mar 101"
+)
+```
+</Accordion>
+
+<Accordion title="Read: Searching Contacts">
+```python
+class ContactManager:
+    # ... other methods ...
+    
+    def buscar_por_nombre(self, nombre: str) -> list[Contact]:
+        """Busca contactos por nombre (búsqueda parcial)"""
+        nombre_busqueda = nombre.lower()
+        return [c for c in self._contactos if nombre_busqueda in c.nombre.lower()]
+    
+    def buscar_por_telefono(self, telefono: str) -> Contact | None:
+        """Busca un contacto por teléfono (búsqueda exacta)"""
+        for contacto in self._contactos:
+            if contacto.telefono == telefono:
+                return contacto
+        return None
+    
+    def obtener_todos_contactos(self) -> list[Contact]:
+        """Obtiene todos los contactos"""
+        return self._contactos
+
+# Usage
+resultados = gestor.buscar_por_nombre("Ana")
+for contacto in resultados:
+    print(contacto)
+```
+</Accordion>
+
+<Accordion title="Update: Editing Contacts">
+```python
+class ContactManager:
+    # ... other methods ...
+    
+    def editar_contacto(self, telefono: str, nombre: str = None, 
+                       email: str = None, direccion: str = None):
+        """Edita un contacto existente"""
+        contacto = self.buscar_por_telefono(telefono)
+        if not contacto:
+            raise ValueError(f"No existe contacto con el teléfono '{telefono}'")
+        
+        if nombre:
+            contacto.nombre = nombre
+        if email:
+            contacto.email = email
+        if direccion:
+            contacto.direccion = direccion
+        
+        self._guardar_contactos()
+
+# Usage
+gestor.editar_contacto(
+    "+56912345678",
+    nombre="Ana María Silva",
+    email="anamaria@example.com"
+)
+```
+</Accordion>
+
+<Accordion title="Delete: Removing Contacts">
+```python
+class ContactManager:
+    # ... other methods ...
+    
+    def eliminar_contacto(self, telefono: str):
+        """Elimina un contacto"""
+        contacto = self.buscar_por_telefono(telefono)
+        if not contacto:
+            raise ValueError(f"No existe contacto con el teléfono '{telefono}'")
+        
+        self._contactos.remove(contacto)
+        self._guardar_contactos()
+
+# Usage
+gestor.eliminar_contacto("+56912345678")
+print("Contacto eliminado")
+```
+</Accordion>
+
+## OOP Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Single Responsibility" icon="bullseye">
+    Each class should have one clear purpose.
+    
+    ```python
+    # Good: Separate concerns
+    class Contact:  # Data model
+        pass
+    
+    class ContactManager:  # Business logic
+        pass
+    ```
+  </Card>
+  
+  <Card title="Encapsulation" icon="lock">
+    Keep attributes private and use properties for controlled access.
+    
+    ```python
+    class Contact:
+        def __init__(self, nombre):
+            self._nombre = nombre
+        
+        @property
+        def nombre(self):
+            return self._nombre
+    ```
+  </Card>
+  
+  <Card title="Use Type Hints" icon="code">
+    Type hints improve code readability and IDE support.
+    
+    ```python
+    def buscar_por_nombre(self, 
+                         nombre: str) -> list[Contact]:
+        return [c for c in self._contactos]
+    ```
+  </Card>
+  
+  <Card title="Document Your Classes" icon="book">
+    Use docstrings to explain class purpose and methods.
+    
+    ```python
+    class ContactManager:
+        """
+        Gestor de contactos.
+        
+        Responsabilidades:
+        - Agregar, editar y eliminar contactos
+        - Buscar contactos por nombre o teléfono
+        """
+    ```
+  </Card>
+</CardGroup>
+
+## Real-World Example
+
+Here's how these classes work together in a real application:
+
+```python
+# Initialize the contact manager
+gestor = ContactManager("contactos.json")
+
+# Add contacts
+gestor.agregar_contacto(
+    "Juan García",
+    "+56912345678",
+    "juan@example.com",
+    "Calle Principal 123"
+)
+
+gestor.agregar_contacto(
+    "María López",
+    "+56987654321",
+    "maria@example.com",
+    "Avenida Central 456"
+)
+
+# Search for contacts
+resultados = gestor.buscar_por_nombre("Juan")
+for contacto in resultados:
+    print(contacto)
+
+# Update a contact
+gestor.editar_contacto(
+    "+56912345678",
+    email="juan.garcia@newdomain.com"
+)
+
+# Get all contacts
+todos = gestor.obtener_todos_contactos()
+print(f"\nTotal de contactos: {gestor.obtener_cantidad_contactos()}")
+```
+
+## Practice Exercises
+
+<Accordion title="Exercise 1: Create a Book Class">
+Create a `Book` class with:
+- Attributes: title, author, isbn, price
+- Properties with validation
+- Methods: `to_dict()`, `from_dict()`, `apply_discount(percentage)`
+- Special methods: `__str__` and `__repr__`
+</Accordion>
+
+<Accordion title="Exercise 2: Library Manager">
+Create a `LibraryManager` class that:
+- Manages a collection of books
+- Can add, remove, and search books
+- Saves/loads books to/from JSON
+- Calculates total library value
+</Accordion>
+
+<Accordion title="Exercise 3: Inheritance">
+Extend the Contact class to create:
+- `BusinessContact` (with company and job title)
+- `PersonalContact` (with birthday and relationship)
+
+Both should inherit from `Contact` and add their specific attributes.
+</Accordion>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Python Projects" icon="folder" href="/modules/python-projects">
+    Apply OOP concepts in real-world projects
+  </Card>
+  <Card title="Python Basics" icon="python" href="/modules/python-basics">
+    Review Python fundamentals
+  </Card>
+</CardGroup>

@@ -1,0 +1,483 @@
+---
+title: Model evaluation
+description: Assess model performance with metrics, confusion matrices, and cross-validation
+icon: chart-bar
+---
+
+## Why Model Evaluation Matters
+
+A model that performs well on training data might fail in production. Proper evaluation ensures:
+
+- **Reliable predictions**: Model generalizes to new data
+- **Informed decisions**: Choose the best model for your use case
+- **Business confidence**: Quantify expected performance
+- **Continuous improvement**: Track performance over time
+
+<Warning>
+  **Never evaluate on training data!** Use a separate test set or cross-validation to get honest performance estimates.
+</Warning>
+
+## Train-Test Split
+
+The foundation of model evaluation.
+
+```python Train-Test Split
+from sklearn.model_selection import train_test_split
+
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y,
+    test_size=0.2,      # 80% train, 20% test
+    random_state=42,    # Reproducible split
+    stratify=y          # Maintain class distribution (classification)
+)
+
+print(f"Training samples: {len(X_train)}")
+print(f"Test samples: {len(X_test)}")
+```
+
+<Note>
+  **Common splits:**
+  - 80/20 for large datasets (≥ 10,000 samples)
+  - 70/30 for medium datasets (1,000-10,000 samples)
+  - 60/40 or cross-validation for small datasets (&lt; 1,000 samples)
+</Note>
+
+## Regression Metrics
+
+For predicting continuous values.
+
+### Mean Absolute Error (MAE)
+
+Average absolute difference between predictions and actual values.
+
+```
+MAE = (1/n) * Σ|y_true - y_pred|
+```
+
+```python MAE
+from sklearn.metrics import mean_absolute_error
+
+mae = mean_absolute_error(y_test, y_pred)
+print(f"MAE: ${mae:.2f}")
+```
+
+**Interpretation:** On average, predictions are off by $X.
+
+**Advantages:**
+- Easy to interpret (same units as target)
+- Robust to outliers
+
+**Disadvantages:**
+- Doesn't penalize large errors more heavily
+
+### Mean Squared Error (MSE)
+
+Average squared difference between predictions and actual values.
+
+```
+MSE = (1/n) * Σ(y_true - y_pred)²
+```
+
+```python MSE
+from sklearn.metrics import mean_squared_error
+
+mse = mean_squared_error(y_test, y_pred)
+print(f"MSE: {mse:.2f}")
+```
+
+**Advantages:**
+- Penalizes large errors more heavily
+- Differentiable (useful for optimization)
+
+**Disadvantages:**
+- Units are squared (harder to interpret)
+- Sensitive to outliers
+
+### Root Mean Squared Error (RMSE)
+
+Square root of MSE, bringing units back to original scale.
+
+```
+RMSE = √(MSE)
+```
+
+```python RMSE
+import numpy as np
+
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+print(f"RMSE: ${rmse:.2f}")
+```
+
+**Interpretation:** Standard deviation of prediction errors.
+
+### R² Score (Coefficient of Determination)
+
+Proportion of variance in the target explained by the model.
+
+```
+R² = 1 - (SS_residual / SS_total)
+```
+
+Where:
+- SS_residual = Σ(y_true - y_pred)²
+- SS_total = Σ(y_true - y_mean)²
+
+```python R² Score
+from sklearn.metrics import r2_score
+
+r2 = r2_score(y_test, y_pred)
+print(f"R²: {r2:.4f}")
+print(f"Model explains {r2*100:.2f}% of variance")
+```
+
+**Interpretation:**
+- R² = 1.0: Perfect predictions
+- R² = 0.0: Model is no better than predicting the mean
+- R² &lt; 0.0: Model is worse than predicting the mean
+
+**Rule of thumb:**
+- R² ≥ 0.9: Excellent
+- 0.7 ≤ R² &lt; 0.9: Good
+- 0.5 ≤ R² &lt; 0.7: Moderate
+- R² &lt; 0.5: Poor
+
+### Module A6 Example: E-Commerce Sales
+
+From the regression project:
+
+```python Evaluate Regression Model
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+# Predictions
+y_pred = model.predict(X_test)
+
+# Calculate metrics
+mae = mean_absolute_error(y_test, y_pred)
+mse = mean_squared_error(y_test, y_pred)
+rmse = np.sqrt(mse)
+r2 = r2_score(y_test, y_pred)
+
+# Display results
+print("Model Performance on Test Set:")
+print(f"MAE:  ${mae:.2f}")
+print(f"MSE:  {mse:.2f}")
+print(f"RMSE: ${rmse:.2f}")
+print(f"R²:   {r2:.4f}")
+print(f"\nModel explains {r2*100:.2f}% of variance in sales")
+```
+
+**Best model results (Gradient Boosting):**
+- MAE: $32.15 - Predictions off by $32 on average
+- RMSE: $41.50 - Standard deviation of errors
+- R²: 0.8823 - Explains 88.23% of variance
+
+## Classification Metrics
+
+For predicting categories.
+
+### Confusion Matrix
+
+Shows correct and incorrect predictions for each class.
+
+```python Confusion Matrix
+from sklearn.metrics import confusion_matrix
+import seaborn as sns
+import matplotlib.pyplot as plt
+
+# Calculate confusion matrix
+cm = confusion_matrix(y_test, y_pred)
+
+# Visualize
+plt.figure(figsize=(8, 6))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues')
+plt.xlabel('Predicted')
+plt.ylabel('Actual')
+plt.title('Confusion Matrix')
+plt.show()
+
+print(cm)
+```
+
+**Binary classification matrix:**
+
+```
+                Predicted
+              Negative  Positive
+Actual  Negative   TN      FP
+        Positive   FN      TP
+```
+
+Where:
+- **TN** (True Negative): Correctly predicted negative
+- **TP** (True Positive): Correctly predicted positive
+- **FN** (False Negative): Incorrectly predicted negative (Type II error)
+- **FP** (False Positive): Incorrectly predicted positive (Type I error)
+
+### Accuracy
+
+Proportion of correct predictions.
+
+```
+Accuracy = (TP + TN) / (TP + TN + FP + FN)
+```
+
+```python Accuracy
+from sklearn.metrics import accuracy_score
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.3f} ({accuracy*100:.1f}%)")
+```
+
+<Warning>
+  **Accuracy can be misleading with imbalanced data!** A model that always predicts the majority class can have high accuracy but be useless.
+</Warning>
+
+### Precision
+
+Of all positive predictions, how many were correct?
+
+```
+Precision = TP / (TP + FP)
+```
+
+```python Precision
+from sklearn.metrics import precision_score
+
+precision = precision_score(y_test, y_pred)
+print(f"Precision: {precision:.3f}")
+```
+
+**Use case:** When false positives are costly (e.g., spam filter marking legitimate emails as spam).
+
+### Recall (Sensitivity, True Positive Rate)
+
+Of all actual positives, how many did we find?
+
+```
+Recall = TP / (TP + FN)
+```
+
+```python Recall
+from sklearn.metrics import recall_score
+
+recall = recall_score(y_test, y_pred)
+print(f"Recall: {recall:.3f}")
+```
+
+**Use case:** When false negatives are costly (e.g., cancer detection - missing a positive case is serious).
+
+### F1 Score
+
+Harmonic mean of precision and recall.
+
+```
+F1 = 2 * (Precision * Recall) / (Precision + Recall)
+```
+
+```python F1 Score
+from sklearn.metrics import f1_score
+
+f1 = f1_score(y_test, y_pred)
+print(f"F1 Score: {f1:.3f}")
+```
+
+**Use case:** When you want to balance precision and recall.
+
+### Classification Report
+
+All metrics in one place.
+
+```python Classification Report
+from sklearn.metrics import classification_report
+
+print(classification_report(y_test, y_pred, target_names=['Class 0', 'Class 1']))
+```
+
+**Output:**
+```
+              precision    recall  f1-score   support
+
+     Class 0       0.85      0.90      0.87       100
+     Class 1       0.89      0.83      0.86        95
+
+    accuracy                           0.87       195
+   macro avg       0.87      0.87      0.87       195
+weighted avg       0.87      0.87      0.87       195
+```
+
+### ROC Curve and AUC
+
+Receiver Operating Characteristic curve shows trade-off between True Positive Rate and False Positive Rate.
+
+```python ROC Curve
+from sklearn.metrics import roc_curve, roc_auc_score
+import matplotlib.pyplot as plt
+
+# Get probability predictions
+y_proba = model.predict_proba(X_test)[:, 1]
+
+# Calculate ROC curve
+fpr, tpr, thresholds = roc_curve(y_test, y_proba)
+auc = roc_auc_score(y_test, y_proba)
+
+# Plot
+plt.figure(figsize=(8, 6))
+plt.plot(fpr, tpr, label=f'AUC = {auc:.3f}')
+plt.plot([0, 1], [0, 1], 'k--', label='Random')
+plt.xlabel('False Positive Rate')
+plt.ylabel('True Positive Rate')
+plt.title('ROC Curve')
+plt.legend()
+plt.grid()
+plt.show()
+
+print(f"AUC: {auc:.3f}")
+```
+
+**AUC interpretation:**
+- AUC = 1.0: Perfect classifier
+- AUC = 0.5: Random guessing
+- AUC &lt; 0.5: Worse than random (invert predictions)
+
+## Cross-Validation
+
+More reliable performance estimate by training and testing on multiple folds.
+
+### K-Fold Cross-Validation
+
+```python K-Fold Cross-Validation
+from sklearn.model_selection import cross_val_score
+from sklearn.ensemble import RandomForestClassifier
+
+model = RandomForestClassifier(n_estimators=100, random_state=42)
+
+# 5-fold cross-validation
+scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+
+print(f"Cross-validation scores: {scores}")
+print(f"Mean accuracy: {scores.mean():.3f} (+/- {scores.std():.3f})")
+```
+
+### Stratified K-Fold
+
+Maintains class distribution in each fold (important for imbalanced data).
+
+```python Stratified K-Fold
+from sklearn.model_selection import StratifiedKFold, cross_val_score
+
+skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
+scores = cross_val_score(model, X, y, cv=skf, scoring='f1')
+
+print(f"Stratified CV F1 scores: {scores}")
+print(f"Mean F1: {scores.mean():.3f} (+/- {scores.std():.3f})")
+```
+
+## Model Comparison
+
+Compare multiple models systematically.
+
+```python Compare Models
+from sklearn.linear_model import LogisticRegression
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.model_selection import cross_val_score
+import pandas as pd
+
+# Define models
+models = {
+    'Logistic Regression': LogisticRegression(max_iter=1000),
+    'Decision Tree': DecisionTreeClassifier(max_depth=10, random_state=42),
+    'Random Forest': RandomForestClassifier(n_estimators=100, random_state=42)
+}
+
+# Evaluate each model
+results = []
+for name, model in models.items():
+    scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+    results.append({
+        'Model': name,
+        'Mean Accuracy': scores.mean(),
+        'Std Dev': scores.std(),
+        'Min': scores.min(),
+        'Max': scores.max()
+    })
+
+# Display results
+results_df = pd.DataFrame(results).sort_values('Mean Accuracy', ascending=False)
+print(results_df)
+```
+
+## Learning Curves
+
+Diagnose overfitting and underfitting.
+
+```python Learning Curves
+from sklearn.model_selection import learning_curve
+import numpy as np
+import matplotlib.pyplot as plt
+
+train_sizes, train_scores, val_scores = learning_curve(
+    model, X, y, cv=5, 
+    train_sizes=np.linspace(0.1, 1.0, 10),
+    scoring='accuracy'
+)
+
+# Calculate means and stds
+train_mean = train_scores.mean(axis=1)
+train_std = train_scores.std(axis=1)
+val_mean = val_scores.mean(axis=1)
+val_std = val_scores.std(axis=1)
+
+# Plot
+plt.figure(figsize=(10, 6))
+plt.plot(train_sizes, train_mean, label='Training score', marker='o')
+plt.fill_between(train_sizes, train_mean - train_std, train_mean + train_std, alpha=0.15)
+plt.plot(train_sizes, val_mean, label='Validation score', marker='s')
+plt.fill_between(train_sizes, val_mean - val_std, val_mean + val_std, alpha=0.15)
+plt.xlabel('Training Set Size')
+plt.ylabel('Accuracy')
+plt.title('Learning Curves')
+plt.legend()
+plt.grid()
+plt.show()
+```
+
+**Diagnosis:**
+- **High bias (underfitting)**: Both train and validation scores are low and converge
+- **High variance (overfitting)**: Large gap between train and validation scores
+- **Good fit**: Both scores are high and close together
+
+## Best Practices
+
+<Tip>
+  **Use multiple metrics.** Don't rely on a single metric - look at precision, recall, F1, and confusion matrix for classification; MAE, RMSE, and R² for regression.
+</Tip>
+
+<Tip>
+  **Always use cross-validation.** Single train-test split can be misleading. Use K-fold CV for more reliable estimates.
+</Tip>
+
+<Warning>
+  **Be careful with imbalanced data.** Accuracy is misleading - focus on precision, recall, F1, and examine the confusion matrix.
+</Warning>
+
+<Info>
+  **Choose metrics that match business goals.** If false negatives are costly (e.g., disease detection), optimize for recall. If false positives are costly (e.g., spam detection), optimize for precision.
+</Info>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Regression models" icon="chart-line" href="/modules/regression-models">
+    Review regression algorithms and techniques
+  </Card>
+  
+  <Card title="Classification models" icon="diagram-project" href="/modules/classification-models">
+    Review classification algorithms
+  </Card>
+  
+  <Card title="Projects" icon="laptop-code" href="/projects/regression-ecommerce">
+    Apply evaluation techniques to real projects
+  </Card>
+</CardGroup>

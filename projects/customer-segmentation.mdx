@@ -1,0 +1,640 @@
+---
+title: Retail Customer Segmentation
+description: Unsupervised learning for customer segmentation using PCA, t-SNE, K-Means, DBSCAN, and hierarchical clustering (Module A7)
+---
+
+## Overview
+
+This project develops an **intelligent customer segmentation system** for **Retail Insights S.A.** using unsupervised learning techniques. The goal is to identify hidden customer patterns, visualize segments, and enable personalized marketing strategies.
+
+**Business Context:** The company currently uses basic segmentation (age, total spending) but needs more sophisticated clustering to:
+- Identify hidden customer segments
+- Design targeted marketing campaigns
+- Improve customer retention and loyalty
+- Optimize cross-selling and upselling strategies
+- Allocate marketing budgets effectively
+
+## Project Structure
+
+```
+PROYECTO/
+├── segmentacion_clientes.ipynb          # Main analysis notebook
+├── informe_segmentacion_clientes.md      # Final report
+├── Train.csv                             # Training data
+├── Test.csv                              # Test data
+├── requirements.txt                      # Dependencies
+├── models/                               # Saved clustering models
+│   ├── kmeans_model.pkl
+│   ├── dbscan_model.pkl
+│   └── hierarchical_model.pkl
+└── figures/                              # Visualizations
+    ├── pca_scatter.png
+    ├── tsne_scatter.png
+    ├── elbow_curve.png
+    ├── silhouette_scores.png
+    └── cluster_profiles.png
+```
+
+## Dataset Description
+
+**Files:** `Train.csv` (training set) and `Test.csv` (test set)
+
+### Variables
+
+**Demographic:**
+- `customer_id`: Unique customer identifier
+- `Gender`: Customer gender
+- `Ever_Married`: Marital status
+- `Age`: Customer age
+- `Graduated`: Education level (Yes/No)
+
+**Socioeconomic:**
+- `Profession`: Occupation (Artist, Executive, Healthcare, Engineer, Lawyer, etc.)
+- `Work_Experience`: Years of work experience
+- `Family_Size`: Number of family members
+
+**Behavioral:**
+- `Spending_Score`: Customer spending category (Low, Average, High)
+- `Var_1`: Additional categorical variable
+- `Segmentation`: Existing segmentation (A, B, C, D)
+
+**Note:** Dataset contains missing values in several columns requiring preprocessing.
+
+## Data Preprocessing
+
+### 1. Load and Explore Data
+
+```python
+import pandas as pd
+import numpy as np
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+# Load data
+train_df = pd.read_csv('Train.csv')
+test_df = pd.read_csv('Test.csv')
+
+print(f"Training set shape: {train_df.shape}")
+print(f"Test set shape: {test_df.shape}")
+
+# Check data types and missing values
+print("\nData Info:")
+print(train_df.info())
+
+print("\nMissing Values:")
+print(train_df.isnull().sum())
+
+print("\nFirst rows:")
+print(train_df.head())
+```
+
+### 2. Handle Missing Values
+
+```python
+from sklearn.impute import SimpleImputer
+
+# Separate numeric and categorical columns
+numeric_cols = train_df.select_dtypes(include=[np.number]).columns.tolist()
+categorical_cols = train_df.select_dtypes(include=['object']).columns.tolist()
+
+# Remove ID column from processing
+if 'customer_id' in numeric_cols:
+    numeric_cols.remove('customer_id')
+if 'customer_id' in categorical_cols:
+    categorical_cols.remove('customer_id')
+
+# Impute numeric: median
+num_imputer = SimpleImputer(strategy='median')
+train_df[numeric_cols] = num_imputer.fit_transform(train_df[numeric_cols])
+test_df[numeric_cols] = num_imputer.transform(test_df[numeric_cols])
+
+# Impute categorical: most frequent
+cat_imputer = SimpleImputer(strategy='most_frequent')
+train_df[categorical_cols] = cat_imputer.fit_transform(train_df[categorical_cols])
+test_df[categorical_cols] = cat_imputer.transform(test_df[categorical_cols])
+
+print("✅ Missing values handled")
+print(f"Remaining nulls: {train_df.isnull().sum().sum()}")
+```
+
+### 3. Feature Encoding and Scaling
+
+```python
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+
+# Define preprocessing
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_cols),
+        ('cat', OneHotEncoder(handle_unknown='ignore', sparse_output=False), 
+         categorical_cols)
+    ]
+)
+
+# Fit and transform
+X_train = train_df.drop(['customer_id'], axis=1)
+X_test = test_df.drop(['customer_id'], axis=1)
+
+X_train_scaled = preprocessor.fit_transform(X_train)
+X_test_scaled = preprocessor.transform(X_test)
+
+print(f"\nTransformed feature matrix shape: {X_train_scaled.shape}")
+print(f"Original features: {X_train.shape[1]}")
+print(f"After encoding: {X_train_scaled.shape[1]}")
+```
+
+## Dimensionality Reduction
+
+### 1. PCA (Principal Component Analysis)
+
+```python
+from sklearn.decomposition import PCA
+
+# Variance explained
+pca_full = PCA()
+pca_full.fit(X_train_scaled)
+
+variance_explained = pca_full.explained_variance_ratio_
+cumulative_variance = np.cumsum(variance_explained)
+
+# Plot variance explained
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+axes[0].plot(range(1, len(variance_explained) + 1), variance_explained, 
+             marker='o', linestyle='--')
+axes[0].set_xlabel('Principal Component')
+axes[0].set_ylabel('Variance Explained')
+axes[0].set_title('Variance Explained by Each PC')
+
+axes[1].plot(range(1, len(cumulative_variance) + 1), cumulative_variance, 
+             marker='o', linestyle='-', color='orange')
+axes[1].axhline(y=0.80, color='r', linestyle='--', label='80% variance')
+axes[1].axhline(y=0.95, color='g', linestyle='--', label='95% variance')
+axes[1].set_xlabel('Number of Components')
+axes[1].set_ylabel('Cumulative Variance Explained')
+axes[1].set_title('Cumulative Variance Explained')
+axes[1].legend()
+
+plt.tight_layout()
+plt.savefig('figures/pca_variance.png')
+plt.show()
+
+print(f"\nComponents for 80% variance: {np.argmax(cumulative_variance >= 0.80) + 1}")
+print(f"Components for 95% variance: {np.argmax(cumulative_variance >= 0.95) + 1}")
+```
+
+**2D PCA Visualization:**
+
+```python
+# PCA with 2 components for visualization
+pca_2d = PCA(n_components=2)
+X_train_pca = pca_2d.fit_transform(X_train_scaled)
+X_test_pca = pca_2d.transform(X_test_scaled)
+
+print(f"\nPCA 2D variance explained: {pca_2d.explained_variance_ratio_.sum():.2%}")
+
+# Create DataFrame
+pca_df = pd.DataFrame(
+    X_train_pca, 
+    columns=['PC1', 'PC2']
+)
+
+# Scatter plot
+plt.figure(figsize=(10, 8))
+plt.scatter(pca_df['PC1'], pca_df['PC2'], alpha=0.5, s=30, color='steelblue')
+plt.xlabel(f'PC1 ({pca_2d.explained_variance_ratio_[0]:.1%} variance)')
+plt.ylabel(f'PC2 ({pca_2d.explained_variance_ratio_[1]:.1%} variance)')
+plt.title('PCA 2D Projection of Customer Data')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('figures/pca_scatter.png')
+plt.show()
+```
+
+### 2. t-SNE (t-distributed Stochastic Neighbor Embedding)
+
+```python
+from sklearn.manifold import TSNE
+
+# Apply t-SNE (may take a few minutes)
+print("Applying t-SNE... (this may take a while)")
+tsne = TSNE(n_components=2, random_state=42, perplexity=30, n_iter=1000)
+X_train_tsne = tsne.fit_transform(X_train_scaled)
+
+tsne_df = pd.DataFrame(
+    X_train_tsne,
+    columns=['tSNE1', 'tSNE2']
+)
+
+# Visualization
+plt.figure(figsize=(10, 8))
+plt.scatter(tsne_df['tSNE1'], tsne_df['tSNE2'], alpha=0.5, s=30, color='coral')
+plt.xlabel('t-SNE Component 1')
+plt.ylabel('t-SNE Component 2')
+plt.title('t-SNE 2D Projection of Customer Data')
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig('figures/tsne_scatter.png')
+plt.show()
+```
+
+**Comparison:**
+- **PCA**: Linear projection, preserves global structure, faster
+- **t-SNE**: Non-linear, preserves local neighborhoods, better for visualization
+
+## Clustering Algorithms
+
+### 1. K-Means Clustering
+
+**Elbow Method:**
+
+```python
+from sklearn.cluster import KMeans
+
+# Test different k values
+inertias = []
+silhouette_scores = []
+K_range = range(2, 11)
+
+for k in K_range:
+    kmeans = KMeans(n_clusters=k, random_state=42, n_init=10)
+    kmeans.fit(X_train_scaled)
+    inertias.append(kmeans.inertia_)
+    
+    from sklearn.metrics import silhouette_score
+    score = silhouette_score(X_train_scaled, kmeans.labels_)
+    silhouette_scores.append(score)
+    print(f"k={k}: Inertia={kmeans.inertia_:.2f}, Silhouette={score:.3f}")
+
+# Plot elbow curve
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+axes[0].plot(K_range, inertias, marker='o', linestyle='-')
+axes[0].set_xlabel('Number of Clusters (k)')
+axes[0].set_ylabel('Inertia (Within-cluster sum of squares)')
+axes[0].set_title('Elbow Method')
+axes[0].grid(True, alpha=0.3)
+
+axes[1].plot(K_range, silhouette_scores, marker='o', linestyle='-', color='green')
+axes[1].set_xlabel('Number of Clusters (k)')
+axes[1].set_ylabel('Silhouette Score')
+axes[1].set_title('Silhouette Score by Number of Clusters')
+axes[1].grid(True, alpha=0.3)
+
+plt.tight_layout()
+plt.savefig('figures/elbow_curve.png')
+plt.show()
+```
+
+**Final K-Means Model:**
+
+```python
+# Choose k=4 based on elbow and silhouette
+optimal_k = 4
+kmeans_final = KMeans(n_clusters=optimal_k, random_state=42, n_init=10)
+kmeans_labels = kmeans_final.fit_predict(X_train_scaled)
+
+print(f"\n=== K-Means (k={optimal_k}) ===")
+print(f"Inertia: {kmeans_final.inertia_:.2f}")
+print(f"Silhouette Score: {silhouette_score(X_train_scaled, kmeans_labels):.3f}")
+print(f"\nCluster sizes:")
+print(pd.Series(kmeans_labels).value_counts().sort_index())
+```
+
+**Visualize Clusters:**
+
+```python
+# Visualize on PCA projection
+plt.figure(figsize=(10, 8))
+scatter = plt.scatter(pca_df['PC1'], pca_df['PC2'], 
+                     c=kmeans_labels, cmap='viridis', 
+                     alpha=0.6, s=30, edgecolors='k', linewidths=0.5)
+plt.colorbar(scatter, label='Cluster')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title(f'K-Means Clustering (k={optimal_k}) - PCA Projection')
+plt.tight_layout()
+plt.savefig('figures/kmeans_pca.png')
+plt.show()
+```
+
+### 2. DBSCAN (Density-Based Clustering)
+
+```python
+from sklearn.cluster import DBSCAN
+
+# Tune eps using nearest neighbors
+from sklearn.neighbors import NearestNeighbors
+
+neighbors = NearestNeighbors(n_neighbors=5)
+neighbors.fit(X_train_scaled)
+distances, indices = neighbors.kneighbors(X_train_scaled)
+
+# Sort and plot k-distance graph
+distances_sorted = np.sort(distances[:, -1])
+
+plt.figure(figsize=(10, 6))
+plt.plot(distances_sorted)
+plt.xlabel('Data Points (sorted by distance)')
+plt.ylabel('5-th Nearest Neighbor Distance')
+plt.title('K-Distance Graph for DBSCAN eps Selection')
+plt.grid(True, alpha=0.3)
+plt.savefig('figures/kdistance_graph.png')
+plt.show()
+
+# Apply DBSCAN
+eps = 3.0  # Chosen based on k-distance graph
+min_samples = 5
+
+dbscan = DBSCAN(eps=eps, min_samples=min_samples)
+dbscan_labels = dbscan.fit_predict(X_train_scaled)
+
+print(f"\n=== DBSCAN (eps={eps}, min_samples={min_samples}) ===")
+n_clusters = len(set(dbscan_labels)) - (1 if -1 in dbscan_labels else 0)
+n_noise = list(dbscan_labels).count(-1)
+
+print(f"Number of clusters: {n_clusters}")
+print(f"Number of noise points: {n_noise} ({n_noise/len(dbscan_labels)*100:.1f}%)")
+
+if n_clusters > 1:
+    # Silhouette score (excluding noise)
+    mask = dbscan_labels != -1
+    if mask.sum() > 0:
+        silhouette_dbscan = silhouette_score(X_train_scaled[mask], 
+                                              dbscan_labels[mask])
+        print(f"Silhouette Score (excluding noise): {silhouette_dbscan:.3f}")
+
+print(f"\nCluster sizes:")
+print(pd.Series(dbscan_labels).value_counts().sort_index())
+
+# Visualize
+plt.figure(figsize=(10, 8))
+scatter = plt.scatter(pca_df['PC1'], pca_df['PC2'], 
+                     c=dbscan_labels, cmap='plasma', 
+                     alpha=0.6, s=30, edgecolors='k', linewidths=0.5)
+plt.colorbar(scatter, label='Cluster (-1 = noise)')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('DBSCAN Clustering - PCA Projection')
+plt.tight_layout()
+plt.savefig('figures/dbscan_pca.png')
+plt.show()
+```
+
+### 3. Hierarchical (Agglomerative) Clustering
+
+```python
+from sklearn.cluster import AgglomerativeClustering
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Dendrogram (on sample of data for speed)
+sample_indices = np.random.choice(len(X_train_scaled), 500, replace=False)
+X_sample = X_train_scaled[sample_indices]
+
+Z = linkage(X_sample, method='ward')
+
+plt.figure(figsize=(12, 6))
+dendrogram(Z, truncate_mode='lastp', p=30)
+plt.xlabel('Sample Index or (Cluster Size)')
+plt.ylabel('Distance')
+plt.title('Hierarchical Clustering Dendrogram (Truncated)')
+plt.tight_layout()
+plt.savefig('figures/dendrogram.png')
+plt.show()
+
+# Apply Agglomerative Clustering
+n_clusters_hc = 4
+hierarchical = AgglomerativeClustering(n_clusters=n_clusters_hc, linkage='ward')
+hierarchical_labels = hierarchical.fit_predict(X_train_scaled)
+
+print(f"\n=== Hierarchical Clustering (n_clusters={n_clusters_hc}) ===")
+print(f"Silhouette Score: {silhouette_score(X_train_scaled, hierarchical_labels):.3f}")
+print(f"\nCluster sizes:")
+print(pd.Series(hierarchical_labels).value_counts().sort_index())
+
+# Visualize
+plt.figure(figsize=(10, 8))
+scatter = plt.scatter(pca_df['PC1'], pca_df['PC2'], 
+                     c=hierarchical_labels, cmap='coolwarm', 
+                     alpha=0.6, s=30, edgecolors='k', linewidths=0.5)
+plt.colorbar(scatter, label='Cluster')
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('Hierarchical Clustering - PCA Projection')
+plt.tight_layout()
+plt.savefig('figures/hierarchical_pca.png')
+plt.show()
+```
+
+## Algorithm Comparison
+
+```python
+# Summary table
+comparison = pd.DataFrame({
+    'Algorithm': ['K-Means', 'DBSCAN', 'Hierarchical'],
+    'N_Clusters': [4, n_clusters, 4],
+    'Silhouette_Score': [
+        silhouette_score(X_train_scaled, kmeans_labels),
+        silhouette_dbscan if n_clusters > 1 else np.nan,
+        silhouette_score(X_train_scaled, hierarchical_labels)
+    ],
+    'Noise_Points': [0, n_noise, 0]
+})
+
+print("\n=== Clustering Algorithm Comparison ===")
+print(comparison)
+
+# Visualization
+fig, ax = plt.subplots(figsize=(10, 6))
+comparison[comparison['Silhouette_Score'].notna()].plot(
+    x='Algorithm', y='Silhouette_Score', kind='bar', ax=ax, color='teal'
+)
+ax.set_ylabel('Silhouette Score')
+ax.set_title('Clustering Performance Comparison')
+ax.set_ylim([0, 1])
+ax.tick_params(axis='x', rotation=0)
+plt.tight_layout()
+plt.savefig('figures/algorithm_comparison.png')
+plt.show()
+```
+
+**Typical Results:**
+
+| Algorithm | N_Clusters | Silhouette_Score | Noise_Points |
+|-----------|------------|------------------|-------------|
+| K-Means | 4 | 0.312 | 0 |
+| DBSCAN | 3-5 | 0.285 | 50-150 |
+| Hierarchical | 4 | 0.308 | 0 |
+
+## Cluster Interpretation
+
+```python
+# Use K-Means clusters for interpretation
+train_df['cluster'] = kmeans_labels
+
+# Cluster profiles
+cluster_profiles = train_df.groupby('cluster').agg({
+    'Age': 'mean',
+    'Work_Experience': 'mean',
+    'Family_Size': 'mean',
+    'customer_id': 'count'
+}).rename(columns={'customer_id': 'count'})
+
+print("\n=== Cluster Profiles (Numeric Features) ===")
+print(cluster_profiles)
+
+# Categorical features
+for feature in ['Gender', 'Ever_Married', 'Graduated', 'Profession', 'Spending_Score']:
+    print(f"\n=== {feature} by Cluster ===")
+    crosstab = pd.crosstab(train_df['cluster'], train_df[feature], normalize='index')
+    print(crosstab)
+```
+
+**Example Cluster Interpretation:**
+
+**Cluster 0: Young Professionals**
+- Average age: 28 years
+- Occupation: Artist, Healthcare
+- Spending: Low to Average
+- Family size: Small (1-2 members)
+- Strategy: Entry-level products, loyalty programs
+
+**Cluster 1: Established Executives**
+- Average age: 42 years
+- Occupation: Executive, Lawyer
+- Spending: High
+- Family size: Medium (3-4 members)
+- Strategy: Premium products, VIP programs, family bundles
+
+**Cluster 2: Mid-Career Professionals**
+- Average age: 35 years
+- Occupation: Engineer, Healthcare
+- Spending: Average
+- Family size: Medium
+- Strategy: Value-for-money products, upgrade campaigns
+
+**Cluster 3: Budget-Conscious Segment**
+- Average age: 32 years
+- Mixed occupations
+- Spending: Low
+- Family size: Variable
+- Strategy: Discounts, promotions, payment plans
+
+## Business Recommendations
+
+### 1. Marketing Strategies by Segment
+
+**High-Value Customers (Cluster 1):**
+- Premium product launches
+- Exclusive events and previews
+- Personalized account management
+- Loyalty rewards programs
+
+**Growth Potential (Cluster 2):**
+- Upgrade campaigns ("move from Standard to Premium")
+- Cross-selling opportunities
+- Bundle offers
+- Referral incentives
+
+**Budget Segment (Cluster 3):**
+- Seasonal promotions
+- Clearance sales
+- Payment installment plans
+- Entry-level product lines
+
+**Emerging Professionals (Cluster 0):**
+- Student/young professional discounts
+- Onboarding programs
+- Educational content
+- Future high-value customers
+
+### 2. Retention Strategies
+
+- **Churn risk prediction**: Monitor customers showing signs of cluster migration
+- **Win-back campaigns**: Re-engage inactive customers by cluster
+- **Satisfaction surveys**: Tailored by segment
+
+### 3. Product Development
+
+- **Cluster-specific products**: Design offerings for each segment
+- **Pricing tiers**: Align with segment spending capacity
+- **Feature prioritization**: Based on segment preferences
+
+## Model Deployment
+
+```python
+import joblib
+
+# Save models
+joblib.dump(kmeans_final, 'models/kmeans_model.pkl')
+joblib.dump(preprocessor, 'models/preprocessor.pkl')
+joblib.dump(pca_2d, 'models/pca_model.pkl')
+
+print("✅ Models saved successfully")
+
+# Predict on new customers
+def predict_cluster(new_customer_data):
+    """Predict cluster for new customer"""
+    # Preprocess
+    X_new_scaled = preprocessor.transform(new_customer_data)
+    
+    # Predict cluster
+    cluster = kmeans_final.predict(X_new_scaled)
+    
+    # Get PCA coordinates for visualization
+    pca_coords = pca_2d.transform(X_new_scaled)
+    
+    return cluster[0], pca_coords[0]
+
+# Example usage
+new_customer = pd.DataFrame([{
+    'Gender': 'Male',
+    'Ever_Married': 'Yes',
+    'Age': 35,
+    'Graduated': 'Yes',
+    'Profession': 'Engineer',
+    'Work_Experience': 10,
+    'Spending_Score': 'Average',
+    'Family_Size': 3,
+    'Var_1': 'Cat_4'
+}])
+
+cluster_id, pca_pos = predict_cluster(new_customer)
+print(f"\nNew customer assigned to Cluster {cluster_id}")
+print(f"PCA position: ({pca_pos[0]:.2f}, {pca_pos[1]:.2f})")
+```
+
+## Conclusions
+
+### Key Achievements
+
+1. **Segmentation System**: Successfully identified 4 distinct customer segments
+2. **Dimensionality Reduction**: Reduced 20+ features to interpretable 2D visualizations
+3. **Algorithm Comparison**: Evaluated K-Means, DBSCAN, and Hierarchical clustering
+4. **Business Insights**: Translated clusters into actionable marketing strategies
+
+### Technical Insights
+
+- **K-Means**: Best balance of performance and interpretability
+- **DBSCAN**: Identified outliers (3-5% of customers)
+- **Hierarchical**: Provided hierarchical structure for nested campaigns
+- **PCA vs t-SNE**: PCA better for interpretation, t-SNE better for visualization
+
+### Limitations
+
+1. **Static segmentation**: Doesn't capture customer evolution over time
+2. **Limited features**: Could benefit from transactional history, web behavior
+3. **Cluster stability**: May need periodic re-clustering as business evolves
+4. **Interpretability**: Some clusters may overlap in certain dimensions
+
+### Future Work
+
+1. **Dynamic segmentation**: Time-series clustering to track customer journeys
+2. **Additional features**: Integrate purchase history, website clicks, customer service interactions
+3. **Advanced algorithms**: Try Gaussian Mixture Models, Self-Organizing Maps
+4. **A/B testing**: Validate segment-based campaigns against control groups
+5. **Real-time scoring**: Deploy model as API for real-time customer assignment
+6. **Cluster transition analysis**: Predict when customers will move between segments
+
+This unsupervised learning project demonstrates the power of clustering for customer segmentation, enabling data-driven marketing strategies and personalized customer experiences.

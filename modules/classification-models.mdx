@@ -1,0 +1,426 @@
+---
+title: Classification models
+description: Predict categorical outcomes with logistic regression, KNN, decision trees, and random forests
+icon: diagram-project
+---
+
+## What is Classification?
+
+Classification is a supervised learning task where the goal is to predict a discrete category or class label.
+
+**Real-world applications:**
+- Email spam detection (spam vs. not spam)
+- Customer churn prediction (will leave vs. will stay)
+- Medical diagnosis (disease vs. healthy)
+- Credit risk assessment (approve vs. deny)
+- Image recognition (cat, dog, bird, etc.)
+
+## Binary vs. Multi-class Classification
+
+<Tabs>
+  <Tab title="Binary Classification">
+    Predict one of two classes.
+    
+    **Examples:**
+    - Spam detection (spam or not spam)
+    - Fraud detection (fraudulent or legitimate)
+    - Customer churn (will churn or stay)
+    
+    **Output:** Single probability between 0 and 1
+  </Tab>
+  
+  <Tab title="Multi-class Classification">
+    Predict one of three or more classes.
+    
+    **Examples:**
+    - Handwritten digit recognition (0-9)
+    - Product categorization (electronics, clothing, books, etc.)
+    - Sentiment analysis (positive, neutral, negative)
+    
+    **Output:** Probability for each class (sum to 1)
+  </Tab>
+</Tabs>
+
+## Logistic Regression
+
+Despite its name, logistic regression is used for classification.
+
+### How it works
+
+Uses the sigmoid function to squash outputs between 0 and 1:
+
+```
+P(y=1) = 1 / (1 + e^-(wx + b))
+```
+
+Decision boundary: Predict class 1 if P(y=1) ≥ 0.5, else class 0.
+
+### Implementation
+
+```python Logistic Regression
+from sklearn.linear_model import LogisticRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score, classification_report
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42, stratify=y
+)
+
+# Train model
+model = LogisticRegression(max_iter=1000)
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+y_proba = model.predict_proba(X_test)  # Get probabilities
+
+# Evaluate
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.3f}")
+print(classification_report(y_test, y_pred))
+```
+
+**Advantages:**
+- Fast training and prediction
+- Provides probability estimates
+- Works well with linearly separable data
+- Interpretable coefficients
+
+**Disadvantages:**
+- Assumes linear decision boundary
+- Can underfit complex patterns
+
+## K-Nearest Neighbors (KNN)
+
+Classifies based on majority vote of K nearest training examples.
+
+### How it works
+
+1. Calculate distance between test point and all training points
+2. Find K nearest neighbors
+3. Predict the majority class among those K neighbors
+
+### Implementation
+
+```python KNN Classifier
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.preprocessing import StandardScaler
+from sklearn.pipeline import Pipeline
+
+# Create pipeline (KNN is sensitive to scale)
+pipeline = Pipeline([
+    ('scaler', StandardScaler()),
+    ('knn', KNeighborsClassifier(n_neighbors=5))
+])
+
+pipeline.fit(X_train, y_train)
+y_pred = pipeline.predict(X_test)
+
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.3f}")
+```
+
+### Choosing K
+
+```python Find Best K
+from sklearn.model_selection import cross_val_score
+import numpy as np
+
+k_values = range(1, 31)
+scores = []
+
+for k in k_values:
+    knn = KNeighborsClassifier(n_neighbors=k)
+    cv_scores = cross_val_score(knn, X_train, y_train, cv=5)
+    scores.append(cv_scores.mean())
+
+best_k = k_values[np.argmax(scores)]
+print(f"Best K: {best_k}")
+print(f"Best CV accuracy: {max(scores):.3f}")
+```
+
+<Note>
+  - Small K: More sensitive to noise, can overfit
+  - Large K: Smoother decision boundary, can underfit
+  - Odd K preferred for binary classification (avoids ties)
+</Note>
+
+**Advantages:**
+- Simple and intuitive
+- No training phase (lazy learner)
+- Can capture complex decision boundaries
+- Works well for small datasets
+
+**Disadvantages:**
+- Slow prediction on large datasets
+- Sensitive to irrelevant features
+- Requires feature scaling
+- High memory usage
+
+## Decision Trees
+
+Creates a tree of decisions based on feature values.
+
+### How it works
+
+1. Find the feature that best splits the data
+2. Create a decision node for that feature
+3. Recursively split each subset
+4. Stop when reaching maximum depth or minimum samples
+
+### Implementation
+
+```python Decision Tree
+from sklearn.tree import DecisionTreeClassifier
+from sklearn import tree
+import matplotlib.pyplot as plt
+
+# Train model
+dt = DecisionTreeClassifier(
+    max_depth=5,           # Limit tree depth
+    min_samples_split=20,  # Minimum samples to split
+    min_samples_leaf=10,   # Minimum samples per leaf
+    random_state=42
+)
+dt.fit(X_train, y_train)
+
+# Predict
+y_pred = dt.predict(X_test)
+
+# Visualize tree
+plt.figure(figsize=(20, 10))
+tree.plot_tree(
+    dt, 
+    feature_names=X.columns, 
+    class_names=['Class 0', 'Class 1'],
+    filled=True,
+    rounded=True
+)
+plt.savefig('decision_tree.png')
+```
+
+### Feature Importance
+
+```python Feature Importance
+importances = dt.feature_importances_
+feature_importance = pd.DataFrame({
+    'feature': X.columns,
+    'importance': importances
+}).sort_values('importance', ascending=False)
+
+print(feature_importance.head(10))
+```
+
+**Advantages:**
+- Easy to interpret and visualize
+- Handles both numerical and categorical data
+- No feature scaling required
+- Captures non-linear relationships
+- Provides feature importance
+
+**Disadvantages:**
+- Prone to overfitting
+- Unstable (small data changes → different tree)
+- Can create biased trees with imbalanced data
+
+## Random Forest
+
+Ensemble of many decision trees voting together.
+
+### How it works
+
+1. Create N bootstrap samples of the data
+2. Train a decision tree on each sample
+3. Each tree uses random subset of features
+4. Final prediction: majority vote of all trees
+
+### Implementation
+
+```python Random Forest
+from sklearn.ensemble import RandomForestClassifier
+
+# Train model
+rf = RandomForestClassifier(
+    n_estimators=100,      # Number of trees
+    max_depth=10,          # Max depth per tree
+    min_samples_split=20,
+    min_samples_leaf=10,
+    max_features='sqrt',   # Features per split
+    random_state=42,
+    n_jobs=-1              # Use all CPU cores
+)
+rf.fit(X_train, y_train)
+
+# Predict
+y_pred = rf.predict(X_test)
+y_proba = rf.predict_proba(X_test)
+
+# Evaluate
+accuracy = accuracy_score(y_test, y_pred)
+print(f"Accuracy: {accuracy:.3f}")
+
+# Feature importance
+feature_importance = pd.DataFrame({
+    'feature': X.columns,
+    'importance': rf.feature_importances_
+}).sort_values('importance', ascending=False)
+
+print("\nTop 10 features:")
+print(feature_importance.head(10))
+```
+
+### Hyperparameter Tuning
+
+```python Grid Search for Random Forest
+from sklearn.model_selection import GridSearchCV
+
+param_grid = {
+    'n_estimators': [50, 100, 200],
+    'max_depth': [5, 10, 15, None],
+    'min_samples_split': [10, 20, 50],
+    'min_samples_leaf': [5, 10, 20]
+}
+
+rf = RandomForestClassifier(random_state=42)
+grid_search = GridSearchCV(
+    rf, param_grid, cv=5, scoring='accuracy', n_jobs=-1
+)
+grid_search.fit(X_train, y_train)
+
+print(f"Best parameters: {grid_search.best_params_}")
+print(f"Best CV accuracy: {grid_search.best_score_:.3f}")
+
+# Use best model
+best_rf = grid_search.best_estimator_
+y_pred = best_rf.predict(X_test)
+```
+
+**Advantages:**
+- Excellent performance
+- Reduces overfitting compared to single tree
+- Provides feature importance
+- Handles missing values
+- Works well out-of-the-box
+
+**Disadvantages:**
+- Slower training and prediction
+- Less interpretable than single tree
+- Larger memory footprint
+
+## Model Comparison
+
+| Model | Training Speed | Prediction Speed | Interpretability | Performance | Scaling Needed |
+|-------|----------------|------------------|------------------|-------------|----------------|
+| Logistic Regression | Fast | Fast | High | Good | Yes |
+| KNN | None | Slow | Medium | Good | Yes |
+| Decision Tree | Medium | Fast | High | Medium | No |
+| Random Forest | Slow | Medium | Low | Excellent | No |
+
+## Module A6: KNN Exercise
+
+From the bootcamp exercise `L5_clasificacion_knn_ejercicio.ipynb`:
+
+```python KNN Classification Example
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+# Load data
+df = pd.read_csv('classification_data.csv')
+X = df.drop('target', axis=1)
+y = df['target']
+
+# Split
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.3, random_state=42, stratify=y
+)
+
+# Scale features
+scaler = StandardScaler()
+X_train_scaled = scaler.fit_transform(X_train)
+X_test_scaled = scaler.transform(X_test)
+
+# Train KNN
+knn = KNeighborsClassifier(n_neighbors=5)
+knn.fit(X_train_scaled, y_train)
+
+# Predict
+y_pred = knn.predict(X_test_scaled)
+
+# Evaluate
+accuracy = accuracy_score(y_test, y_pred)
+conf_matrix = confusion_matrix(y_test, y_pred)
+
+print(f"Accuracy: {accuracy:.3f}")
+print(f"\nConfusion Matrix:\n{conf_matrix}")
+```
+
+## Handling Imbalanced Data
+
+When one class is much more common than others:
+
+### Techniques
+
+```python Class Weights
+# Automatically balance class weights
+rf = RandomForestClassifier(class_weight='balanced')
+rf.fit(X_train, y_train)
+```
+
+```python SMOTE (Synthetic Oversampling)
+from imblearn.over_sampling import SMOTE
+
+smote = SMOTE(random_state=42)
+X_train_balanced, y_train_balanced = smote.fit_resample(X_train, y_train)
+
+rf = RandomForestClassifier()
+rf.fit(X_train_balanced, y_train_balanced)
+```
+
+```python Stratified Sampling
+# Ensure train/test split maintains class distribution
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, stratify=y, random_state=42
+)
+```
+
+<Warning>
+  With imbalanced data, accuracy can be misleading. Use precision, recall, F1-score, and examine the confusion matrix.
+</Warning>
+
+## Best Practices
+
+<Tip>
+  **Start with Random Forest.** It often gives excellent results with minimal tuning and works well across many problems.
+</Tip>
+
+<Tip>
+  **Use stratified splitting.** Ensures train and test sets have the same class distribution as the original data.
+</Tip>
+
+<Info>
+  **Feature engineering matters.** Creating meaningful derived features often improves performance more than trying different algorithms.
+</Info>
+
+<Warning>
+  **Don't forget to scale features for KNN and Logistic Regression.** Tree-based models (Decision Trees, Random Forest) don't need scaling.
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Model evaluation" icon="chart-bar" href="/modules/model-evaluation">
+    Learn to properly evaluate classification models
+  </Card>
+  
+  <Card title="Deep learning" icon="brain" href="/modules/deep-learning">
+    Neural networks for complex classification tasks
+  </Card>
+  
+  <Card title="Clustering" icon="diagram-project" href="/modules/clustering">
+    Unsupervised learning without labels
+  </Card>
+</CardGroup>

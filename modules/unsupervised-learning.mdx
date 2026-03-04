@@ -1,0 +1,196 @@
+---
+title: 'Unsupervised Learning'
+description: 'Introduction to unsupervised learning techniques for pattern discovery and data exploration'
+icon: 'chart-scatter'
+---
+
+## Overview
+
+Unsupervised learning is a machine learning paradigm where algorithms discover patterns and structures in data **without labeled examples**. Unlike supervised learning, where we provide input-output pairs, unsupervised learning works with unlabeled data to find hidden insights.
+
+<Info>
+This module corresponds to **Module A7** of the bootcamp, focusing on customer segmentation using clustering techniques.
+</Info>
+
+## What is Unsupervised Learning?
+
+Unsupervised learning techniques analyze data to identify:
+- Natural groupings or clusters
+- Hidden patterns and relationships
+- Dimensionality reduction for visualization
+- Anomaly detection
+
+### Key Use Cases
+
+Based on the **Retail Insights S.A.** customer segmentation project:
+
+<CardGroup cols={2}>
+  <Card title="Customer Segmentation" icon="users">
+    Group customers by behavior patterns to design personalized marketing campaigns
+  </Card>
+  
+  <Card title="Market Basket Analysis" icon="shopping-cart">
+    Discover purchasing patterns and product associations
+  </Card>
+  
+  <Card title="Anomaly Detection" icon="exclamation-triangle">
+    Identify unusual patterns or outliers in customer behavior
+  </Card>
+  
+  <Card title="Data Exploration" icon="compass">
+    Visualize high-dimensional data in 2D/3D space
+  </Card>
+</CardGroup>
+
+## Dimensionality Reduction
+
+Dimensionality reduction techniques transform high-dimensional data into lower dimensions while preserving important information.
+
+### PCA (Principal Component Analysis)
+
+PCA is a linear dimensionality reduction technique that:
+- Finds orthogonal axes (principal components) that maximize variance
+- Orders components by explained variance
+- Enables visualization in 2D or 3D
+
+**From the customer segmentation project:**
+
+<Note>
+PCA was applied to:
+- Analyze how much variance different principal components explain
+- Obtain a **2-dimensional representation (PC1 and PC2)** for customer visualization
+- Reduce computational complexity for clustering algorithms
+</Note>
+
+```python
+from sklearn.decomposition import PCA
+import matplotlib.pyplot as plt
+
+# Apply PCA to reduce to 2 dimensions
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+# Visualize explained variance
+print(f"Explained variance ratio: {pca.explained_variance_ratio_}")
+print(f"Total variance explained: {sum(pca.explained_variance_ratio_):.2%}")
+
+# Plot customers in 2D space
+plt.figure(figsize=(10, 6))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], alpha=0.5)
+plt.xlabel('PC1')
+plt.ylabel('PC2')
+plt.title('Customer Distribution in PCA Space')
+plt.show()
+```
+
+### t-SNE (t-distributed Stochastic Neighbor Embedding)
+
+t-SNE is a non-linear technique particularly good for visualization:
+- Preserves **local neighborhood relationships**
+- Creates meaningful 2D/3D visualizations of complex data
+- Better at revealing cluster structure than PCA
+
+**From the project:**
+
+<Warning>
+t-SNE was applied to obtain a 2D representation that preserves local relationships between customers (neighborhoods). This technique is excellent for visualization but should not be used for feature extraction in downstream models.
+</Warning>
+
+```python
+from sklearn.manifold import TSNE
+
+# Apply t-SNE for visualization
+tsne = TSNE(n_components=2, random_state=42, perplexity=30)
+X_tsne = tsne.fit_transform(X_scaled)
+
+# Visualize with cluster colors
+plt.figure(figsize=(10, 6))
+plt.scatter(X_tsne[:, 0], X_tsne[:, 1], c=cluster_labels, cmap='viridis', alpha=0.6)
+plt.colorbar(label='Cluster')
+plt.title('Customer Clusters Visualized with t-SNE')
+plt.show()
+```
+
+## Data Preprocessing for Unsupervised Learning
+
+### Handling Missing Values
+
+From the project preprocessing steps:
+
+```python
+from sklearn.impute import SimpleImputer
+
+# Numeric variables: impute with median
+num_imputer = SimpleImputer(strategy='median')
+X_numeric = num_imputer.fit_transform(df_numeric)
+
+# Categorical variables: impute with most frequent value
+cat_imputer = SimpleImputer(strategy='most_frequent')
+X_categorical = cat_imputer.fit_transform(df_categorical)
+```
+
+### Feature Scaling
+
+<Tip>
+**Always scale features** for distance-based unsupervised algorithms. The customer segmentation project used StandardScaler to center variables at mean 0 and standard deviation 1.
+</Tip>
+
+```python
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+
+# Scale numeric features
+scaler = StandardScaler()
+X_numeric_scaled = scaler.fit_transform(X_numeric)
+
+# One-hot encode categorical features
+encoder = OneHotEncoder(handle_unknown='ignore')
+X_categorical_encoded = encoder.fit_transform(X_categorical)
+```
+
+## Business Insights
+
+### Customer Segments Identified
+
+From the Retail Insights S.A. project analysis:
+
+<AccordionGroup>
+  <Accordion title="Segment 1: Young Low-Income Customers">
+    - **Profile**: Middle-aged, occupations like Artist or Healthcare, mainly "Low" income level
+    - **Strategy**: Economic bundles, simple loyalty programs, promotional campaigns
+  </Accordion>
+  
+  <Accordion title="Segment 2: High-Income Professionals">
+    - **Profile**: Executive and Lawyer occupations, "High" income levels
+    - **Strategy**: Premium products, exclusive plans, VIP programs
+  </Accordion>
+  
+  <Accordion title="Segment 3: Young New Customers">
+    - **Profile**: Younger customers with lower seniority
+    - **Strategy**: Onboarding programs, activation campaigns, personalized recommendations
+  </Accordion>
+  
+  <Accordion title="Segment 4: Mixed Patterns">
+    - **Profile**: Customers with less frequent or mixed patterns
+    - **Strategy**: Individual analysis to detect opportunities or risks
+  </Accordion>
+</AccordionGroup>
+
+## Next Steps
+
+After understanding unsupervised learning fundamentals, explore:
+
+<CardGroup cols={2}>
+  <Card title="Clustering Algorithms" icon="object-group" href="/modules/clustering">
+    Learn K-Means, DBSCAN, and hierarchical clustering
+  </Card>
+  
+  <Card title="Deep Learning" icon="brain" href="/modules/deep-learning">
+    Move on to neural networks and deep learning fundamentals
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [Scikit-learn Clustering Documentation](https://scikit-learn.org/stable/modules/clustering.html)
+- [Understanding PCA](https://scikit-learn.org/stable/modules/decomposition.html#pca)
+- [t-SNE Visualization Guide](https://scikit-learn.org/stable/modules/manifold.html#t-sne)

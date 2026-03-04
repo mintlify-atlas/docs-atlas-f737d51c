@@ -1,0 +1,399 @@
+---
+title: E-commerce Data Preparation Pipeline
+description: Complete data preparation workflow using NumPy, Pandas, and web scraping (Module A3)
+---
+
+## Overview
+
+This project implements a complete **data preparation pipeline** for an e-commerce use case using Python, NumPy, and Pandas. The workflow starts with data from multiple sources (generated data, CSV/Excel files, web scraping), then cleans, transforms, and consolidates them into a final dataset ready for analysis and modeling.
+
+**Deliverables:**
+- Python script with complete workflow (`datos.py`)
+- Jupyter notebook with step-by-step explanation (`datos.ipynb`)
+- Final structured dataset (`dataset_final.csv` and `dataset_final.xlsx`)
+- Optional Streamlit dashboard for data exploration (`dashboard.py`)
+
+## Project Structure
+
+```
+proyecto_modulo/
+├── datos.py                      # Main data preparation script
+├── datos.ipynb                   # Jupyter notebook with workflow
+├── dashboard.py                  # Optional Streamlit dashboard
+├── requirements.txt              # Python dependencies
+│
+├── clientes_ecommerce.csv        # Source: CSV file
+├── clientes_ecommerce.xlsx       # Source: Excel file
+│
+├── clientes_numpy.npy            # Generated: NumPy array
+├── clientes_desde_numpy.csv      # Intermediate: NumPy to CSV
+├── dataset_consolidado.csv       # Intermediate: Consolidated data
+├── dataset_limpio.csv            # Intermediate: Cleaned data
+├── dataset_wrangle.csv           # Intermediate: Wrangled data
+├── dataset_final.csv             # Final: Output dataset
+└── dataset_final.xlsx            # Final: Excel format
+```
+
+## Data Preparation Workflow
+
+### 1. Data Generation with NumPy
+
+Generate synthetic e-commerce customer data using NumPy:
+
+```python
+import numpy as np
+
+# Generate synthetic customer data
+n_customers = 1000
+
+customer_ids = np.arange(1, n_customers + 1)
+ages = np.random.randint(18, 70, size=n_customers)
+purchase_amounts = np.random.uniform(10, 500, size=n_customers)
+num_purchases = np.random.poisson(5, size=n_customers)
+customer_segments = np.random.choice(['Bronze', 'Silver', 'Gold'], 
+                                      size=n_customers,
+                                      p=[0.5, 0.3, 0.2])
+
+# Save as NumPy array
+np_data = np.column_stack([customer_ids, ages, purchase_amounts, 
+                           num_purchases, customer_segments])
+np.save('clientes_numpy.npy', np_data)
+```
+
+**Generated variables:**
+- Customer ID
+- Age (18-70 years)
+- Purchase amount ($10-$500)
+- Number of purchases (Poisson distribution)
+- Customer segment (Bronze/Silver/Gold)
+
+### 2. Loading from CSV and Excel
+
+Load existing customer data from multiple file formats:
+
+```python
+import pandas as pd
+
+# Load from CSV
+df_csv = pd.read_csv('clientes_ecommerce.csv')
+
+# Load from Excel
+df_excel = pd.read_excel('clientes_ecommerce.xlsx')
+
+# Convert NumPy data to DataFrame
+np_loaded = np.load('clientes_numpy.npy', allow_pickle=True)
+df_numpy = pd.DataFrame(np_loaded, 
+                        columns=['customer_id', 'age', 'purchase_amount',
+                                'num_purchases', 'segment'])
+```
+
+### 3. Web Scraping
+
+Extract additional data from web sources:
+
+```python
+import requests
+from lxml import html
+
+# Example: Scrape product categories from an e-commerce site
+url = 'https://example.com/categories'
+response = requests.get(url)
+tree = html.fromstring(response.content)
+
+# Extract category data
+categories = tree.xpath('//div[@class="category"]/text()')
+prices = tree.xpath('//span[@class="price"]/text()')
+
+# Create DataFrame from scraped data
+df_web = pd.DataFrame({
+    'category': categories,
+    'price': prices
+})
+```
+
+Or scrape HTML tables directly with Pandas:
+
+```python
+# Read HTML tables directly
+df_tables = pd.read_html(url)
+df_web = df_tables[0]  # Select first table
+```
+
+### 4. Data Consolidation
+
+Merge data from multiple sources:
+
+```python
+# Concatenate DataFrames
+df_consolidated = pd.concat([df_csv, df_excel, df_numpy], 
+                            ignore_index=True)
+
+# Merge with web data if applicable
+if 'category' in df_web.columns:
+    df_consolidated = df_consolidated.merge(df_web, 
+                                           on='category', 
+                                           how='left')
+
+# Save consolidated data
+df_consolidated.to_csv('dataset_consolidado.csv', index=False)
+```
+
+### 5. Data Cleaning
+
+Handle missing values, duplicates, and data quality issues:
+
+```python
+# Check for missing values
+print("Missing values:")
+print(df_consolidated.isnull().sum())
+
+# Handle missing values
+df_clean = df_consolidated.copy()
+
+# Numeric columns: fill with median
+numeric_cols = df_clean.select_dtypes(include=[np.number]).columns
+df_clean[numeric_cols] = df_clean[numeric_cols].fillna(
+    df_clean[numeric_cols].median()
+)
+
+# Categorical columns: fill with mode
+categorical_cols = df_clean.select_dtypes(include=['object']).columns
+for col in categorical_cols:
+    df_clean[col].fillna(df_clean[col].mode()[0], inplace=True)
+
+# Remove duplicates
+df_clean = df_clean.drop_duplicates(subset=['customer_id'])
+
+# Remove outliers (example: using IQR method)
+for col in ['purchase_amount', 'age']:
+    Q1 = df_clean[col].quantile(0.25)
+    Q3 = df_clean[col].quantile(0.75)
+    IQR = Q3 - Q1
+    df_clean = df_clean[
+        (df_clean[col] >= Q1 - 1.5 * IQR) & 
+        (df_clean[col] <= Q3 + 1.5 * IQR)
+    ]
+
+# Save cleaned data
+df_clean.to_csv('dataset_limpio.csv', index=False)
+```
+
+### 6. Data Wrangling and Feature Engineering
+
+Transform and create new features:
+
+```python
+# Create new features
+df_wrangle = df_clean.copy()
+
+# Average purchase value
+df_wrangle['avg_purchase_value'] = (
+    df_wrangle['purchase_amount'] / df_wrangle['num_purchases']
+)
+
+# Customer lifetime value (CLV) estimation
+df_wrangle['clv_estimate'] = (
+    df_wrangle['avg_purchase_value'] * 
+    df_wrangle['num_purchases'] * 2  # Assume 2 year lifetime
+)
+
+# Age groups
+df_wrangle['age_group'] = pd.cut(
+    df_wrangle['age'],
+    bins=[0, 25, 35, 45, 55, 100],
+    labels=['18-25', '26-35', '36-45', '46-55', '55+']
+)
+
+# Purchase frequency category
+df_wrangle['purchase_frequency'] = pd.cut(
+    df_wrangle['num_purchases'],
+    bins=[0, 3, 7, 15, 100],
+    labels=['Low', 'Medium', 'High', 'Very High']
+)
+
+# Standardize column names
+df_wrangle.columns = df_wrangle.columns.str.lower().str.replace(' ', '_')
+
+# Save wrangled data
+df_wrangle.to_csv('dataset_wrangle.csv', index=False)
+```
+
+### 7. Final Dataset Export
+
+Export the final prepared dataset:
+
+```python
+# Final dataset
+df_final = df_wrangle.copy()
+
+# Select relevant columns
+final_columns = [
+    'customer_id', 'age', 'age_group', 'segment',
+    'purchase_amount', 'num_purchases', 'avg_purchase_value',
+    'purchase_frequency', 'clv_estimate'
+]
+df_final = df_final[final_columns]
+
+# Sort by customer_id
+df_final = df_final.sort_values('customer_id').reset_index(drop=True)
+
+# Export to CSV and Excel
+df_final.to_csv('dataset_final.csv', index=False)
+df_final.to_excel('dataset_final.xlsx', index=False)
+
+print(f"✅ Final dataset created: {len(df_final)} records")
+print(f"   Columns: {', '.join(df_final.columns)}")
+```
+
+## Installation and Execution
+
+### 1. Prerequisites
+
+- Python 3.x
+- Terminal access (CMD, PowerShell, Terminal)
+- Git (optional)
+
+### 2. Clone/Download Project
+
+```bash
+git clone <repository-url>
+cd proyecto_modulo
+```
+
+### 3. Create Virtual Environment
+
+**Windows:**
+```bash
+python -m venv .venv
+.venv\Scripts\activate
+```
+
+**Linux/macOS:**
+```bash
+python -m venv .venv
+source .venv/bin/activate
+```
+
+### 4. Install Dependencies
+
+```bash
+pip install -r requirements.txt
+```
+
+**Key dependencies:**
+- `numpy` - Numerical computing
+- `pandas` - Data manipulation
+- `lxml` - XML/HTML parsing
+- `requests` - HTTP requests
+- `openpyxl` - Excel support
+- `streamlit` - Dashboard (optional)
+
+### 5. Run Main Script
+
+```bash
+python datos.py
+```
+
+This will generate:
+- `dataset_final.csv`
+- `dataset_final.xlsx`
+- Various intermediate files
+
+### 6. Run Jupyter Notebook (Optional)
+
+```bash
+pip install jupyter
+jupyter notebook
+# Open datos.ipynb and run cells
+```
+
+### 7. Run Streamlit Dashboard (Optional)
+
+```bash
+streamlit run dashboard.py
+# Opens at http://localhost:8501
+```
+
+## Streamlit Dashboard
+
+Interactive dashboard for exploring the prepared data:
+
+```python
+import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+st.title('E-commerce Customer Data Dashboard')
+
+# Load data
+df = pd.read_csv('dataset_final.csv')
+
+# Display metrics
+col1, col2, col3 = st.columns(3)
+col1.metric('Total Customers', len(df))
+col2.metric('Avg Purchase Amount', f"${df['purchase_amount'].mean():.2f}")
+col3.metric('Total Revenue', f"${df['purchase_amount'].sum():.2f}")
+
+# Visualizations
+st.subheader('Customer Segments')
+fig = px.pie(df, names='segment', title='Customer Distribution by Segment')
+st.plotly_chart(fig)
+
+st.subheader('Age Distribution')
+fig = px.histogram(df, x='age', nbins=20, title='Age Distribution')
+st.plotly_chart(fig)
+
+st.subheader('Purchase Frequency vs Amount')
+fig = px.scatter(df, x='num_purchases', y='purchase_amount', 
+                color='segment', title='Purchase Patterns')
+st.plotly_chart(fig)
+
+# Data table
+st.subheader('Raw Data')
+st.dataframe(df)
+```
+
+## Key Learning Outcomes
+
+1. **NumPy Data Generation**
+   - Creating synthetic datasets
+   - Random number generation
+   - Array operations and saving
+
+2. **Multi-source Data Loading**
+   - CSV and Excel file reading
+   - NumPy array conversion
+   - Web scraping with requests/lxml
+
+3. **Data Consolidation**
+   - Concatenating DataFrames
+   - Merging datasets
+   - Handling index conflicts
+
+4. **Data Cleaning**
+   - Missing value imputation
+   - Duplicate removal
+   - Outlier detection and handling
+
+5. **Feature Engineering**
+   - Creating derived features
+   - Binning continuous variables
+   - Data type transformations
+
+6. **Data Export**
+   - Multiple format support
+   - Column selection and ordering
+   - Best practices for data storage
+
+## Best Practices Demonstrated
+
+- **Reproducible workflow**: Complete pipeline in Python script
+- **Documentation**: Jupyter notebook with explanations
+- **Intermediate files**: Save data at each stage for debugging
+- **Error handling**: Validate data at each step
+- **Visualization**: Interactive dashboard for exploration
+- **Version control**: Track changes to data preparation code
+
+## Conclusion
+
+This data preparation project demonstrates a complete ETL (Extract, Transform, Load) workflow for e-commerce data, preparing it for downstream analysis and machine learning tasks. The modular structure allows for easy updates and extensions as new data sources become available.

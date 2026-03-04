@@ -1,0 +1,377 @@
+---
+title: 'Python Basics'
+description: 'Master the fundamentals of Python programming including variables, data types, control flow, and functions'
+icon: 'python'
+---
+
+## Introduction
+
+Python is a powerful, versatile programming language that's perfect for data science. This module covers the essential building blocks you'll need to start writing Python code.
+
+## Variables and Data Types
+
+### Understanding Variables
+
+Variables in Python are used to store data. Unlike some languages, Python uses dynamic typing, meaning you don't need to declare the type explicitly.
+
+<CodeGroup>
+```python Variables and Constants
+EDAD_JUBILACION = 60
+NOTA_MINIMA = 4.0
+
+# Solicitar nombre y edad
+nombre = "Ingrid"
+edad_texto = "30"
+edad = int(edad_texto)  # Conversión a int
+
+# Años faltantes para jubilarse
+faltan = EDAD_JUBILACION - edad
+ya_jubilado = (faltan <= 0)
+```
+
+```python Type Conversion
+# Converting string to integer
+edad_texto = input("Ingresa tu edad (en años): ")
+edad = int(edad_texto)
+
+# Converting to float
+nota1 = float(input("Ingresa nota 1 (1.0 a 7.0): "))
+nota2 = float(input("Ingresa nota 2 (1.0 a 7.0): "))
+nota3 = float(input("Ingresa nota 3 (1.0 a 7.0): "))
+
+# Calcular promedio
+promedio = (nota1 + nota2 + nota3) / 3
+aprueba = (promedio >= NOTA_MINIMA)
+```
+</CodeGroup>
+
+<Note>
+**Best Practice**: Use UPPERCASE for constants (values that shouldn't change) and lowercase for regular variables.
+</Note>
+
+### Common Data Types
+
+<Accordion title="Numeric Types">
+- **int**: Integer numbers (e.g., 30, -5, 1000)
+- **float**: Decimal numbers (e.g., 4.0, 3.14, -2.5)
+- **bool**: Boolean values (True or False)
+
+```python
+edad = 30  # int
+promedio = 4.5  # float
+aprueba = True  # bool
+```
+</Accordion>
+
+<Accordion title="String Type">
+Strings are sequences of characters enclosed in quotes.
+
+```python
+nombre = "Ingrid"
+categoria = 'estudiante'
+mensaje = """Este es un
+texto multilínea"""
+```
+</Accordion>
+
+<Accordion title="Collection Types">
+- **list**: Ordered, mutable collection
+- **dict**: Key-value pairs
+- **tuple**: Ordered, immutable collection
+
+```python
+inventario = [
+    {"nombre": "laptop", "precio": 800, "stock": 5},
+    {"nombre": "mouse", "precio": 25, "stock": 0},
+    {"nombre": "teclado", "precio": 45, "stock": 10}
+]
+```
+</Accordion>
+
+## Control Flow
+
+### Conditional Statements
+
+Control the flow of your program based on conditions using `if`, `elif`, and `else`.
+
+<Tabs>
+  <Tab title="Basic If-Else">
+    ```python
+    # Simple conditional
+    if aprueba:
+        print("Estado:", "Aprueba ✅")
+    else:
+        print("Estado:", "Reprueba ❌")
+    ```
+  </Tab>
+  
+  <Tab title="Multiple Conditions">
+    ```python
+    # Clasificación por edad
+    edad = int(input("Ingrese su edad: "))
+    
+    if edad <= 12:
+        grupo = "niño/a"
+    elif edad <= 17:
+        grupo = "adolescente"
+    elif edad <= 59:
+        grupo = "adulto/a"
+    else:
+        grupo = "adulto/a mayor"
+    
+    print(f"Clasificación: {grupo}")
+    ```
+  </Tab>
+  
+  <Tab title="Complex Logic">
+    ```python
+    # Sistema de validación de acceso
+    estado = input("Estado de la cuenta (activo/inactivo): ").strip().lower()
+    rol = input("Ingresa tu rol (estudiante/docente/otro): ").strip().lower()
+    edad = int(input("Ingresa tu edad: "))
+    
+    if not (estado == "activo"):
+        puede_acceder = False
+        motivo = "tu cuenta está inactiva"
+    elif (rol == "docente") and (estado == "activo"):
+        puede_acceder = True
+        motivo = "eres docente con cuenta activa"
+    elif (rol == "estudiante") and (estado == "activo") and (edad >= 18):
+        puede_acceder = True
+        motivo = "eres estudiante y tienes edad suficiente"
+    else:
+        puede_acceder = False
+        motivo = "no cumples los requisitos"
+    
+    if puede_acceder:
+        print(f"✅ Acceso concedido. Motivo: {motivo}.")
+    else:
+        print(f"⛔ Acceso denegado. Motivo: {motivo}.")
+    ```
+  </Tab>
+</Tabs>
+
+<Note>
+**Logical Operators**: Use `and`, `or`, and `not` to combine multiple conditions. Use parentheses for clarity.
+</Note>
+
+### Input Validation
+
+Always validate user input to prevent errors:
+
+```python
+# Validar entrada numérica
+edad_txt = input("Ingrese su edad: ")
+
+if not edad_txt.isdigit():
+    print("❌ Edad inválida. Debes ingresar un número entero (ej: 20).")
+    raise SystemExit
+
+edad = int(edad_txt)
+```
+
+## Functions
+
+### Defining Functions
+
+Functions help organize code into reusable blocks:
+
+<CodeGroup>
+```python Simple Function
+def calcular_imc(peso, altura):
+    """Calcula el IMC usando la fórmula: peso / altura al cuadrado."""
+    return peso / (altura ** 2)
+
+# Uso
+valor_imc = calcular_imc(75, 1.75)
+print(f"Tu IMC es: {valor_imc:.2f}")
+```
+
+```python Function with Conditionals
+def clasificar_imc(imc):
+    """Devuelve la categoría de salud basada en el valor del IMC."""
+    if imc < 18.5:
+        return "Bajo peso"
+    elif 18.5 <= imc < 25:
+        return "Peso normal"
+    elif 25 <= imc < 30:
+        return "Sobrepeso"
+    else:
+        return "Obesidad"
+
+# Uso
+categoria = clasificar_imc(22.4)
+print(f"Clasificación: {categoria}")
+```
+
+```python Main Function Pattern
+def ejecutar_programa():
+    """Función principal que coordina la entrada, el cálculo y la salida."""
+    print("--- Calculadora de IMC ---")
+    
+    try:
+        peso = float(input("Ingresa tu peso en kg (ej. 75): "))
+        altura = float(input("Ingresa tu altura en metros (ej. 1.75): "))
+        
+        valor_imc = calcular_imc(peso, altura)
+        categoria = clasificar_imc(valor_imc)
+        
+        print(f"\nTu IMC es: {valor_imc:.2f}")
+        print(f"Clasificación: {categoria}")
+        
+    except ValueError:
+        print("Error: Por favor ingresa solo números.")
+
+if __name__ == "__main__":
+    ejecutar_programa()
+```
+</CodeGroup>
+
+<Note>
+The `if __name__ == "__main__":` pattern ensures code only runs when the file is executed directly, not when imported as a module.
+</Note>
+
+## Functional Programming Concepts
+
+### Lambda Functions and Higher-Order Functions
+
+Python supports functional programming with lambda functions, `map()`, `filter()`, and `reduce()`:
+
+```python
+from functools import reduce
+
+# Lista de productos
+inventario = [
+    {"nombre": "laptop", "precio": 800, "stock": 5},
+    {"nombre": "mouse", "precio": 25, "stock": 0},
+    {"nombre": "teclado", "precio": 45, "stock": 10},
+    {"nombre": "monitor", "precio": 150, "stock": 3}
+]
+
+def obtener_disponibles(lista):
+    """Filtra productos que están en stock."""
+    return list(filter(lambda producto: producto["stock"] > 0, lista))
+
+def formatear_nombres(lista):
+    """Formatea los nombres de los productos a mayúsculas."""
+    return list(map(lambda producto: producto["nombre"].upper(), lista))
+
+def calcular_valor_total(lista):
+    """Calcula el valor total del inventario disponible."""
+    return reduce(
+        lambda total, producto: total + (producto["precio"] * producto["stock"]), 
+        lista, 
+        0
+    )
+
+# Uso
+disponibles = obtener_disponibles(inventario)
+nombres_formateados = formatear_nombres(disponibles)
+valor_total = calcular_valor_total(disponibles)
+
+print("Productos disponibles:", nombres_formateados)
+print("Valor total del inventario:", valor_total)
+```
+
+<Accordion title="Understanding Lambda Functions">
+Lambda functions are anonymous functions defined in a single line:
+
+```python
+# Lambda function
+cuadrado = lambda x: x ** 2
+
+# Equivalent regular function
+def cuadrado(x):
+    return x ** 2
+```
+
+Use lambda for simple operations, especially with `map()`, `filter()`, and `sorted()`.
+</Accordion>
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Use Descriptive Names" icon="tag">
+    Choose variable and function names that clearly describe their purpose.
+    ```python
+    # Good
+    edad_jubilacion = 60
+    
+    # Avoid
+    x = 60
+    ```
+  </Card>
+  
+  <Card title="Add Docstrings" icon="book">
+    Document your functions with docstrings.
+    ```python
+    def calcular_imc(peso, altura):
+        """Calcula el IMC usando la fórmula: 
+        peso / altura al cuadrado."""
+        return peso / (altura ** 2)
+    ```
+  </Card>
+  
+  <Card title="Handle Errors" icon="shield">
+    Use try-except blocks to handle potential errors gracefully.
+    ```python
+    try:
+        edad = int(input("Edad: "))
+    except ValueError:
+        print("Por favor ingresa un número")
+    ```
+  </Card>
+  
+  <Card title="Validate Input" icon="check">
+    Always validate user input before processing.
+    ```python
+    if not edad_txt.isdigit():
+        print("❌ Entrada inválida")
+        return
+    ```
+  </Card>
+</CardGroup>
+
+## Practice Exercises
+
+<Accordion title="Exercise 1: Grade Calculator">
+Create a program that:
+1. Takes three grades as input
+2. Calculates the average
+3. Determines if the student passes (average >= 4.0)
+4. Prints a formatted result
+
+**Hint**: Use `float(input())` for input and conditional statements for evaluation.
+</Accordion>
+
+<Accordion title="Exercise 2: Age Classifier">
+Write a function that takes an age and returns the appropriate category:
+- 0-12: "niño/a"
+- 13-17: "adolescente"
+- 18-59: "adulto/a"
+- 60+: "adulto/a mayor"
+
+**Hint**: Use `if-elif-else` statements.
+</Accordion>
+
+<Accordion title="Exercise 3: Inventory Filter">
+Given a list of product dictionaries, write functions to:
+1. Filter products with stock > 0
+2. Convert product names to uppercase
+3. Calculate total inventory value
+
+**Hint**: Use `filter()`, `map()`, and `reduce()`.
+</Accordion>
+
+## Next Steps
+
+Now that you understand Python basics, you're ready to explore:
+
+<CardGroup cols={2}>
+  <Card title="Object-Oriented Programming" icon="cube" href="/modules/python-oop">
+    Learn about classes, objects, and inheritance
+  </Card>
+  <Card title="Python Projects" icon="folder" href="/modules/python-projects">
+    Build real-world applications with Python
+  </Card>
+</CardGroup>

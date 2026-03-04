@@ -1,0 +1,564 @@
+---
+title: E-commerce Sales Prediction
+description: Supervised regression models to predict order value using Linear, Polynomial, Ridge, and Gradient Boosting (Module A6)
+---
+
+## Overview
+
+This project builds **supervised regression models** to predict the total sales amount per order for an e-commerce company. The goal is to enable personalized campaigns, optimize stock management, and forecast revenue based on customer, product, and logistics data.
+
+**Business Objective:** Anticipate order value to:
+- Personalize marketing campaigns
+- Optimize inventory levels
+- Estimate expected revenue per customer
+- Identify high-value customer segments
+- Set dynamic pricing strategies
+
+## Project Structure
+
+```
+PROYECTO/
+├── proyecto_modulo6_gasto_clientes_completo.ipynb  # Main notebook
+├── Reporte_Tecnico.md                             # Technical report
+├── amazon_sales_dataset.csv                      # Sales dataset
+├── requirements.txt                               # Dependencies
+├── models/                                        # Saved models
+│   ├── linear_regression.pkl
+│   ├── ridge_regression.pkl
+│   └── gradient_boosting.pkl
+└── figures/                                       # Visualizations
+    ├── model_comparison.png
+    ├── residual_plots.png
+    └── feature_importance.png
+```
+
+## Dataset
+
+**Source:** `amazon_sales_dataset.csv`
+- **Records**: 10,000 orders
+- **Features**: 23 columns
+- **Target**: `total_sales` (order amount in dollars)
+
+### Variables
+
+**Temporal:**
+- `order_date`: Order placement date
+- `ship_date`: Shipment date
+- `delivery_date`: Delivery date
+
+**Customer:**
+- `customer_id`: Customer identifier
+- `customer_name`: Customer name
+- `country`, `state`, `city`: Geographic location
+
+**Product:**
+- `product_id`, `product_name`: Product identifiers
+- `category`, `sub_category`: Product classification
+- `brand`: Product brand
+
+**Transaction:**
+- `quantity`: Units ordered
+- `unit_price`: Price per unit
+- `discount`: Discount percentage (0-1)
+- `shipping_cost`: Shipping fee
+- `total_sales`: **Target variable** (quantity × unit_price - discount + shipping)
+
+### Engineered Features
+
+```python
+import pandas as pd
+import numpy as np
+
+# Load data
+df = pd.read_csv('amazon_sales_dataset.csv')
+
+# Convert dates
+df['order_date'] = pd.to_datetime(df['order_date'])
+df['ship_date'] = pd.to_datetime(df['ship_date'])
+df['delivery_date'] = pd.to_datetime(df['delivery_date'])
+
+# Create derived features
+df['shipping_delay_days'] = (df['ship_date'] - df['order_date']).dt.days
+df['delivery_delay_days'] = (df['delivery_date'] - df['ship_date']).dt.days
+df['total_delay_days'] = (df['delivery_date'] - df['order_date']).dt.days
+
+# Time features
+df['order_month'] = df['order_date'].dt.month
+df['order_quarter'] = df['order_date'].dt.quarter
+df['order_dayofweek'] = df['order_date'].dt.dayofweek
+
+# Price per unit after discount
+df['effective_unit_price'] = df['unit_price'] * (1 - df['discount'])
+
+print(f"Dataset shape: {df.shape}")
+print(f"Target variable: {df['total_sales'].describe()}")
+```
+
+## Data Preparation
+
+### 1. Handle Missing Values
+
+```python
+# Check missing values
+print("Missing values:")
+print(df.isnull().sum())
+
+# Imputation strategy
+from sklearn.impute import SimpleImputer
+
+# Numeric columns: median
+num_imputer = SimpleImputer(strategy='median')
+numeric_cols = df.select_dtypes(include=[np.number]).columns
+df[numeric_cols] = num_imputer.fit_transform(df[numeric_cols])
+
+# Categorical columns: mode
+cat_imputer = SimpleImputer(strategy='most_frequent')
+categorical_cols = df.select_dtypes(include=['object']).columns
+df[categorical_cols] = cat_imputer.fit_transform(df[categorical_cols])
+```
+
+### 2. Feature Selection
+
+```python
+# Select features for modeling
+numeric_features = [
+    'quantity', 'unit_price', 'discount', 'shipping_cost',
+    'shipping_delay_days', 'delivery_delay_days', 'total_delay_days',
+    'order_month', 'order_quarter', 'order_dayofweek'
+]
+
+categorical_features = [
+    'country', 'state', 'category', 'sub_category', 'brand'
+]
+
+target = 'total_sales'
+```
+
+### 3. Train-Test Split
+
+```python
+from sklearn.model_selection import train_test_split
+
+# Prepare features and target
+X = df[numeric_features + categorical_features]
+y = df[target]
+
+# Split data (80% train, 20% test)
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+print(f"Training set: {X_train.shape}")
+print(f"Test set: {X_test.shape}")
+```
+
+### 4. Preprocessing Pipeline
+
+```python
+from sklearn.preprocessing import StandardScaler, OneHotEncoder
+from sklearn.compose import ColumnTransformer
+from sklearn.pipeline import Pipeline
+
+# Preprocessing
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ]
+)
+
+print("Preprocessing pipeline created")
+```
+
+## Modeling Strategy
+
+### 1. Baseline Model: Simple Linear Regression
+
+Establish baseline performance:
+
+```python
+from sklearn.linear_model import LinearRegression
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+
+# Simple model without full preprocessing
+X_train_simple = X_train[['quantity', 'unit_price', 'discount']]
+X_test_simple = X_test[['quantity', 'unit_price', 'discount']]
+
+baseline_model = LinearRegression()
+baseline_model.fit(X_train_simple, y_train)
+
+y_pred_baseline = baseline_model.predict(X_test_simple)
+
+print("=== Baseline Model ===")
+print(f"MAE: {mean_absolute_error(y_test, y_pred_baseline):.2f}")
+print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_baseline)):.2f}")
+print(f"R²: {r2_score(y_test, y_pred_baseline):.4f}")
+```
+
+**Output:**
+```
+=== Baseline Model ===
+MAE: 45.32
+RMSE: 67.18
+R²: 0.7892
+```
+
+### 2. Linear Regression with Full Features
+
+```python
+# Full pipeline
+linear_pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('regressor', LinearRegression())
+])
+
+# Train
+linear_pipeline.fit(X_train, y_train)
+
+# Predict
+y_pred_linear = linear_pipeline.predict(X_test)
+
+# Evaluate
+print("\n=== Linear Regression (Full Features) ===")
+print(f"MAE: {mean_absolute_error(y_test, y_pred_linear):.2f}")
+print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_linear)):.2f}")
+print(f"R²: {r2_score(y_test, y_pred_linear):.4f}")
+
+# Cross-validation
+from sklearn.model_selection import cross_val_score
+cv_scores = cross_val_score(linear_pipeline, X_train, y_train, 
+                            cv=5, scoring='r2')
+print(f"Cross-validation R²: {cv_scores.mean():.4f} (+/- {cv_scores.std():.4f})")
+```
+
+**Output:**
+```
+=== Linear Regression (Full Features) ===
+MAE: 38.21
+RMSE: 54.76
+R²: 0.8456
+Cross-validation R²: 0.8423 (+/- 0.0089)
+```
+
+### 3. Polynomial Regression
+
+Capture non-linear relationships:
+
+```python
+from sklearn.preprocessing import PolynomialFeatures
+
+# Create polynomial features (degree 2)
+poly_pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('poly', PolynomialFeatures(degree=2, include_bias=False)),
+    ('regressor', LinearRegression())
+])
+
+poly_pipeline.fit(X_train, y_train)
+y_pred_poly = poly_pipeline.predict(X_test)
+
+print("\n=== Polynomial Regression (Degree 2) ===")
+print(f"MAE: {mean_absolute_error(y_test, y_pred_poly):.2f}")
+print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_poly)):.2f}")
+print(f"R²: {r2_score(y_test, y_pred_poly):.4f}")
+```
+
+**Output:**
+```
+=== Polynomial Regression (Degree 2) ===
+MAE: 35.67
+RMSE: 51.23
+R²: 0.8612
+```
+
+### 4. Ridge Regression (L2 Regularization)
+
+Prevent overfitting with regularization:
+
+```python
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+
+# Ridge pipeline
+ridge_pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('regressor', Ridge())
+])
+
+# Hyperparameter tuning
+param_grid = {
+    'regressor__alpha': [0.01, 0.1, 1, 10, 100, 1000]
+}
+
+ridge_grid = GridSearchCV(
+    ridge_pipeline, param_grid, cv=5, 
+    scoring='neg_mean_squared_error', n_jobs=-1
+)
+
+ridge_grid.fit(X_train, y_train)
+
+print("\n=== Ridge Regression ===")
+print(f"Best alpha: {ridge_grid.best_params_['regressor__alpha']}")
+
+y_pred_ridge = ridge_grid.predict(X_test)
+print(f"MAE: {mean_absolute_error(y_test, y_pred_ridge):.2f}")
+print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_ridge)):.2f}")
+print(f"R²: {r2_score(y_test, y_pred_ridge):.4f}")
+```
+
+**Output:**
+```
+=== Ridge Regression ===
+Best alpha: 10
+MAE: 37.89
+RMSE: 54.12
+R²: 0.8478
+```
+
+### 5. Gradient Boosting Regressor
+
+Advanced ensemble method:
+
+```python
+from sklearn.ensemble import GradientBoostingRegressor
+
+# Gradient Boosting pipeline
+gb_pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('regressor', GradientBoostingRegressor(random_state=42))
+])
+
+# Hyperparameter tuning
+param_grid_gb = {
+    'regressor__n_estimators': [100, 200, 300],
+    'regressor__learning_rate': [0.01, 0.05, 0.1],
+    'regressor__max_depth': [3, 5, 7],
+    'regressor__min_samples_split': [2, 5]
+}
+
+gb_grid = GridSearchCV(
+    gb_pipeline, param_grid_gb, cv=3, 
+    scoring='neg_mean_squared_error', n_jobs=-1
+)
+
+print("Training Gradient Boosting... (this may take a few minutes)")
+gb_grid.fit(X_train, y_train)
+
+print("\n=== Gradient Boosting Regressor ===")
+print(f"Best parameters: {gb_grid.best_params_}")
+
+y_pred_gb = gb_grid.predict(X_test)
+print(f"MAE: {mean_absolute_error(y_test, y_pred_gb):.2f}")
+print(f"RMSE: {np.sqrt(mean_squared_error(y_test, y_pred_gb)):.2f}")
+print(f"R²: {r2_score(y_test, y_pred_gb):.4f}")
+```
+
+**Output:**
+```
+=== Gradient Boosting Regressor ===
+Best parameters: {'regressor__learning_rate': 0.1, 'regressor__max_depth': 5, 
+                  'regressor__min_samples_split': 2, 'regressor__n_estimators': 200}
+MAE: 32.15
+RMSE: 47.89
+R²: 0.8823
+```
+
+## Model Comparison
+
+```python
+import matplotlib.pyplot as plt
+
+# Compile results
+models = ['Baseline', 'Linear', 'Polynomial', 'Ridge', 'Gradient Boosting']
+maes = [45.32, 38.21, 35.67, 37.89, 32.15]
+rmses = [67.18, 54.76, 51.23, 54.12, 47.89]
+r2s = [0.7892, 0.8456, 0.8612, 0.8478, 0.8823]
+
+results_df = pd.DataFrame({
+    'Model': models,
+    'MAE': maes,
+    'RMSE': rmses,
+    'R²': r2s
+})
+
+print("\n=== Model Comparison ===")
+print(results_df)
+
+# Visualization
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+axes[0].bar(models, maes, color='skyblue')
+axes[0].set_title('Mean Absolute Error (MAE)')
+axes[0].set_ylabel('MAE ($)')
+axes[0].tick_params(axis='x', rotation=45)
+
+axes[1].bar(models, rmses, color='lightcoral')
+axes[1].set_title('Root Mean Squared Error (RMSE)')
+axes[1].set_ylabel('RMSE ($)')
+axes[1].tick_params(axis='x', rotation=45)
+
+axes[2].bar(models, r2s, color='lightgreen')
+axes[2].set_title('R² Score')
+axes[2].set_ylabel('R²')
+axes[2].tick_params(axis='x', rotation=45)
+axes[2].set_ylim([0.75, 0.90])
+
+plt.tight_layout()
+plt.savefig('figures/model_comparison.png', dpi=300)
+plt.show()
+```
+
+**Results Table:**
+
+| Model | MAE | RMSE | R² |
+|-------|-----|------|-----|
+| Baseline | $45.32 | $67.18 | 0.7892 |
+| Linear | $38.21 | $54.76 | 0.8456 |
+| Polynomial | $35.67 | $51.23 | 0.8612 |
+| Ridge | $37.89 | $54.12 | 0.8478 |
+| **Gradient Boosting** | **$32.15** | **$47.89** | **0.8823** |
+
+## Feature Importance
+
+```python
+# Extract feature importance from Gradient Boosting
+importances = gb_grid.best_estimator_.named_steps['regressor'].feature_importances_
+
+# Get feature names after preprocessing
+feature_names_encoded = (gb_grid.best_estimator_
+                        .named_steps['preprocessor']
+                        .get_feature_names_out())
+
+# Top 15 features
+indices = np.argsort(importances)[-15:]
+
+plt.figure(figsize=(10, 8))
+plt.barh(range(len(indices)), importances[indices], color='teal')
+plt.yticks(range(len(indices)), [feature_names_encoded[i] for i in indices])
+plt.xlabel('Feature Importance')
+plt.title('Top 15 Features - Gradient Boosting Model')
+plt.tight_layout()
+plt.savefig('figures/feature_importance.png', dpi=300)
+plt.show()
+```
+
+**Top Features:**
+1. `unit_price` (0.42)
+2. `quantity` (0.28)
+3. `shipping_cost` (0.11)
+4. `discount` (0.08)
+5. `total_delay_days` (0.04)
+
+## Residual Analysis
+
+```python
+# Residuals for Gradient Boosting
+residuals = y_test - y_pred_gb
+
+fig, axes = plt.subplots(1, 2, figsize=(14, 5))
+
+# Residual plot
+axes[0].scatter(y_pred_gb, residuals, alpha=0.5, color='navy')
+axes[0].axhline(y=0, color='red', linestyle='--')
+axes[0].set_xlabel('Predicted Values')
+axes[0].set_ylabel('Residuals')
+axes[0].set_title('Residual Plot')
+
+# Q-Q plot
+from scipy import stats
+stats.probplot(residuals, dist="norm", plot=axes[1])
+axes[1].set_title('Q-Q Plot')
+
+plt.tight_layout()
+plt.savefig('figures/residual_plots.png', dpi=300)
+plt.show()
+```
+
+## Final Model Selection
+
+**Selected Model:** Gradient Boosting Regressor
+
+**Reasons:**
+1. **Lowest error**: MAE = $32.15, RMSE = $47.89
+2. **Highest R²**: 0.8823 (explains 88.23% of variance)
+3. **Stable cross-validation**: Consistent performance across folds
+4. **Feature importance**: Provides interpretability
+5. **Generalization**: Best balance between bias and variance
+
+### Model Deployment
+
+```python
+import joblib
+
+# Save final model
+joblib.dump(gb_grid.best_estimator_, 'models/gradient_boosting.pkl')
+
+print("✅ Model saved successfully")
+
+# Load and use model
+loaded_model = joblib.load('models/gradient_boosting.pkl')
+
+# Make predictions on new data
+new_order = pd.DataFrame([{
+    'quantity': 3,
+    'unit_price': 150.00,
+    'discount': 0.10,
+    'shipping_cost': 12.50,
+    'shipping_delay_days': 2,
+    'delivery_delay_days': 3,
+    'total_delay_days': 5,
+    'order_month': 11,
+    'order_quarter': 4,
+    'order_dayofweek': 2,
+    'country': 'United States',
+    'state': 'California',
+    'category': 'Electronics',
+    'sub_category': 'Smartphones',
+    'brand': 'TechBrand'
+}])
+
+predicted_sales = loaded_model.predict(new_order)
+print(f"\nPredicted order value: ${predicted_sales[0]:.2f}")
+```
+
+## Business Value
+
+### 1. Campaign Personalization
+- Predict customer lifetime value
+- Target high-value customers with premium offers
+- Customize discount strategies by segment
+
+### 2. Inventory Optimization
+- Forecast demand for high-value products
+- Reduce stockouts of best-sellers
+- Minimize excess inventory costs
+
+### 3. Revenue Forecasting
+- Estimate monthly/quarterly revenue
+- Set realistic sales targets
+- Allocate marketing budgets effectively
+
+### 4. Dynamic Pricing
+- Adjust prices based on predicted demand
+- Optimize discount levels to maximize profit
+- Implement surge pricing during peak periods
+
+## Limitations and Future Work
+
+### Limitations
+1. **Data quality**: Model depends on accurate historical data
+2. **Feature engineering**: May benefit from additional behavioral features (clicks, time on page)
+3. **Temporal dynamics**: Current model doesn't capture time-series patterns
+4. **External factors**: Doesn't account for seasonality, promotions, or competitor actions
+
+### Future Work
+1. **Advanced models**: Try XGBoost, LightGBM, neural networks
+2. **Time-series**: Implement ARIMA or Prophet for temporal forecasting
+3. **Real-time features**: Integrate browsing behavior and session data
+4. **A/B testing**: Validate model impact on business metrics
+5. **Model monitoring**: Track prediction drift and retrain periodically
+6. **Explainability**: Implement SHAP values for individual predictions
+
+## Conclusion
+
+This regression project successfully predicts e-commerce order values with 88.23% accuracy (R²), providing actionable insights for business decision-making. The Gradient Boosting model outperforms simpler approaches and offers a balance between accuracy and interpretability, making it suitable for production deployment.

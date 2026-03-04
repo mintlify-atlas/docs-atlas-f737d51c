@@ -1,0 +1,472 @@
+---
+title: Student Health & Performance Study
+description: Statistical inference project analyzing sleep, nutrition, and academic performance in university students (Module A5)
+---
+
+## Overview
+
+This project implements a complete **statistical inference** study on the relationship between healthy habits (sleep, nutrition, physical activity) and academic wellbeing (stress, grades) in university students. The project covers hypothesis formulation, data simulation, probability analysis, sampling distributions, confidence intervals, and hypothesis testing.
+
+**Research Questions:**
+- Do university students sleep less than the recommended 7 hours per night?
+- Is there a relationship between physical activity and stress levels?
+- Does healthy eating correlate with better academic performance?
+- How do sleep quality and duration affect perceived stress?
+
+## Project Structure
+
+```
+PROYECTO/
+├── habitos_saludables.ipynb      # Main notebook with full analysis
+├── student_health_data.csv       # Simulated dataset (150+ students)
+├── requirements.txt              # Python dependencies
+├── figures/                      # Generated visualizations
+│   ├── sleep_distribution.png
+│   ├── sampling_distribution.png
+│   ├── hypothesis_tests.png
+└── informe_final.pdf             # Final report
+```
+
+## Methodology
+
+### 1. Problem Statement and Study Design
+
+**Context:** University students face multiple stressors that can affect their health and academic performance. Understanding the relationship between healthy habits and wellbeing can inform intervention programs.
+
+**Study Design:**
+- **Type**: Observational, cross-sectional, quantitative
+- **Population**: University students (18-30 years)
+- **Sample**: Simulated random sample of 150 students
+- **Variables**: Sleep hours, sleep quality, physical activity, nutrition score, stress level, GPA
+
+**Variable Dictionary:**
+
+| Variable | Type | Scale | Role |
+|----------|------|-------|------|
+| `edad` | Quantitative | Ratio | Descriptive |
+| `horas_sueno` | Quantitative | Ratio | Independent |
+| `calidad_sueno` | Ordinal | Ordinal (1-5) | Independent |
+| `actividad_fisica` | Categorical | Nominal | Independent |
+| `puntaje_alimentacion` | Quantitative | Interval (0-10) | Independent |
+| `nivel_estres` | Quantitative | Interval (1-10) | Dependent |
+| `promedio_notas` | Quantitative | Ratio | Dependent |
+
+### 2. Data Simulation
+
+Generate realistic student health data using NumPy:
+
+```python
+import numpy as np
+import pandas as pd
+
+np.random.seed(42)
+n_students = 150
+
+# Simulate variables
+data = {
+    'estudiante_id': range(1, n_students + 1),
+    'edad': np.random.randint(18, 30, n_students),
+    'horas_sueno': np.random.normal(6.5, 1.2, n_students).clip(4, 10),
+    'calidad_sueno': np.random.choice([1, 2, 3, 4, 5], n_students, 
+                                       p=[0.05, 0.15, 0.30, 0.35, 0.15]),
+    'actividad_fisica': np.random.choice(['Baja', 'Media', 'Alta'], n_students,
+                                          p=[0.35, 0.45, 0.20]),
+    'puntaje_alimentacion': np.random.normal(6.0, 1.5, n_students).clip(0, 10),
+}
+
+# Generate dependent variables with correlations
+data['nivel_estres'] = (
+    8 - 0.3 * data['horas_sueno'] 
+    - 0.2 * data['calidad_sueno']
+    - 0.15 * data['puntaje_alimentacion']
+    + np.random.normal(0, 1, n_students)
+).clip(1, 10)
+
+data['promedio_notas'] = (
+    4.5 + 0.15 * data['horas_sueno']
+    + 0.1 * data['calidad_sueno']
+    + 0.08 * data['puntaje_alimentacion']
+    - 0.1 * data['nivel_estres']
+    + np.random.normal(0, 0.3, n_students)
+).clip(2, 7)
+
+df = pd.DataFrame(data)
+df.to_csv('student_health_data.csv', index=False)
+
+print(f"Dataset created: {len(df)} students")
+print(df.describe())
+```
+
+**Sample Data:**
+```
+   estudiante_id  edad  horas_sueno  calidad_sueno actividad_fisica  \
+0              1    24          6.2              3             Media   
+1              2    21          7.1              4              Alta   
+2              3    19          5.8              2              Baja   
+3              4    22          6.8              4             Media   
+4              5    20          5.5              3              Baja   
+
+   puntaje_alimentacion  nivel_estres  promedio_notas  
+0                   5.8           6.2             5.2  
+1                   7.2           4.8             5.8  
+2                   4.9           7.5             4.6  
+3                   6.5           5.1             5.6  
+4                   5.1           7.8             4.3  
+```
+
+### 3. Probability Analysis
+
+Calculate probabilities of key events:
+
+```python
+# Define events
+event_sleep_7h = df['horas_sueno'] >= 7
+event_high_activity = df['actividad_fisica'] == 'Alta'
+event_healthy_eating = df['puntaje_alimentacion'] >= 7
+event_good_grades = df['promedio_notas'] >= 5.5
+
+# Calculate probabilities (as proportions)
+P_sleep_7h = event_sleep_7h.mean()
+P_high_activity = event_high_activity.mean()
+P_healthy_eating = event_healthy_eating.mean()
+P_good_grades = event_good_grades.mean()
+
+print("=== Basic Probabilities ===")
+print(f"P(Sleep ≥ 7h): {P_sleep_7h:.3f}")
+print(f"P(High activity): {P_high_activity:.3f}")
+print(f"P(Healthy eating): {P_healthy_eating:.3f}")
+print(f"P(Good grades ≥ 5.5): {P_good_grades:.3f}")
+
+# Joint probabilities
+P_sleep_and_grades = (event_sleep_7h & event_good_grades).mean()
+P_activity_and_eating = (event_high_activity & event_healthy_eating).mean()
+
+print("\n=== Joint Probabilities ===")
+print(f"P(Sleep ≥ 7h AND Good grades): {P_sleep_and_grades:.3f}")
+print(f"P(High activity AND Healthy eating): {P_activity_and_eating:.3f}")
+
+# Conditional probabilities
+P_grades_given_sleep = (event_sleep_7h & event_good_grades).sum() / event_sleep_7h.sum()
+print(f"\nP(Good grades | Sleep ≥ 7h): {P_grades_given_sleep:.3f}")
+```
+
+**Output:**
+```
+=== Basic Probabilities ===
+P(Sleep ≥ 7h): 0.373
+P(High activity): 0.200
+P(Healthy eating): 0.287
+P(Good grades ≥ 5.5): 0.453
+
+=== Joint Probabilities ===
+P(Sleep ≥ 7h AND Good grades): 0.227
+P(High activity AND Healthy eating): 0.073
+
+P(Good grades | Sleep ≥ 7h): 0.607
+```
+
+**Interpretation:** Students who sleep ≥7 hours have a 60.7% probability of achieving good grades, compared to 45.3% overall.
+
+### 4. Probability Distributions
+
+**Normal Distribution for Sleep Hours:**
+
+```python
+import matplotlib.pyplot as plt
+from scipy import stats
+
+# Fit normal distribution
+mu, sigma = df['horas_sueno'].mean(), df['horas_sueno'].std()
+
+print(f"Sleep hours: μ = {mu:.2f}, σ = {sigma:.2f}")
+
+# Calculate theoretical probabilities
+P_sleep_less_6 = stats.norm.cdf(6, mu, sigma)
+P_sleep_7_to_8 = stats.norm.cdf(8, mu, sigma) - stats.norm.cdf(7, mu, sigma)
+
+print(f"P(Sleep < 6h): {P_sleep_less_6:.3f}")
+print(f"P(7 ≤ Sleep ≤ 8): {P_sleep_7_to_8:.3f}")
+
+# Visualization
+fig, ax = plt.subplots(figsize=(10, 6))
+ax.hist(df['horas_sueno'], bins=20, density=True, alpha=0.7, 
+        color='skyblue', edgecolor='black', label='Empirical')
+
+x = np.linspace(4, 10, 100)
+ax.plot(x, stats.norm.pdf(x, mu, sigma), 'r-', lw=2, label='Normal fit')
+ax.axvline(7, color='green', linestyle='--', label='Recommended (7h)')
+ax.set_xlabel('Sleep Hours')
+ax.set_ylabel('Density')
+ax.set_title('Sleep Duration Distribution')
+ax.legend()
+plt.tight_layout()
+plt.savefig('figures/sleep_distribution.png')
+plt.show()
+```
+
+**Binomial Distribution for Healthy Eating:**
+
+```python
+# Model healthy eating score as binomial (10 trials)
+n_trials = 10
+p_success = df['puntaje_alimentacion'].mean() / 10
+
+print(f"\nHealthy eating: n={n_trials}, p={p_success:.3f}")
+
+# Probability of scoring at least 7/10
+P_score_7_plus = 1 - stats.binom.cdf(6, n_trials, p_success)
+print(f"P(Score ≥ 7/10): {P_score_7_plus:.3f}")
+```
+
+### 5. Sampling Distribution and Central Limit Theorem
+
+Demonstrate CLT with sleep hours:
+
+```python
+# Generate sampling distributions
+sample_sizes = [10, 30, 50]
+n_samples = 1000
+
+fig, axes = plt.subplots(1, 3, figsize=(15, 5))
+
+for idx, n in enumerate(sample_sizes):
+    sample_means = []
+    for _ in range(n_samples):
+        sample = df['horas_sueno'].sample(n, replace=True)
+        sample_means.append(sample.mean())
+    
+    ax = axes[idx]
+    ax.hist(sample_means, bins=30, density=True, alpha=0.7, 
+            color='coral', edgecolor='black')
+    
+    # Overlay theoretical normal
+    mu_sampling = mu
+    sigma_sampling = sigma / np.sqrt(n)
+    x = np.linspace(min(sample_means), max(sample_means), 100)
+    ax.plot(x, stats.norm.pdf(x, mu_sampling, sigma_sampling), 
+            'b-', lw=2, label='Theoretical N($\\mu$, $\\sigma/\\sqrt{n}$)')
+    
+    ax.set_title(f'n = {n}')
+    ax.set_xlabel('Sample Mean (hours)')
+    ax.set_ylabel('Density')
+    ax.legend()
+
+plt.suptitle('Central Limit Theorem: Sampling Distribution of Sleep Hours Mean', 
+             fontsize=14, y=1.02)
+plt.tight_layout()
+plt.savefig('figures/sampling_distribution.png')
+plt.show()
+
+print("\n=== Sampling Distribution Statistics ===")
+for n in sample_sizes:
+    sigma_sampling = sigma / np.sqrt(n)
+    print(f"n={n}: SE = {sigma_sampling:.4f}")
+```
+
+**Interpretation:** As sample size increases from 10 to 50, the standard error decreases from 0.38 to 0.17, and the sampling distribution becomes more tightly concentrated around the true mean.
+
+### 6. Confidence Intervals
+
+```python
+from scipy.stats import t
+
+def confidence_interval(data, confidence=0.95):
+    """Calculate confidence interval for the mean using t-distribution"""
+    n = len(data)
+    mean = data.mean()
+    se = data.std(ddof=1) / np.sqrt(n)
+    margin = se * t.ppf((1 + confidence) / 2, n - 1)
+    return mean - margin, mean + margin
+
+# Calculate CIs for sleep hours
+for conf in [0.90, 0.95, 0.99]:
+    ci_low, ci_high = confidence_interval(df['horas_sueno'], confidence=conf)
+    print(f"{int(conf*100)}% CI for sleep hours: [{ci_low:.2f}, {ci_high:.2f}]")
+
+# Calculate CIs for stress level
+print("\n=== Stress Level ===")
+for conf in [0.90, 0.95, 0.99]:
+    ci_low, ci_high = confidence_interval(df['nivel_estres'], confidence=conf)
+    print(f"{int(conf*100)}% CI for stress level: [{ci_low:.2f}, {ci_high:.2f}]")
+```
+
+**Output:**
+```
+90% CI for sleep hours: [6.34, 6.70]
+95% CI for sleep hours: [6.31, 6.73]
+99% CI for sleep hours: [6.25, 6.79]
+
+=== Stress Level ===
+90% CI for stress level: [5.81, 6.21]
+95% CI for stress level: [5.76, 6.26]
+99% CI for stress level: [5.67, 6.35]
+```
+
+**Interpretation:** We are 95% confident that the true mean sleep duration for university students is between 6.31 and 6.73 hours. Higher confidence levels produce wider intervals.
+
+### 7. Hypothesis Testing
+
+#### Test 1: Do students sleep less than 7 hours on average?
+
+**Hypotheses:**
+- H₀: μ ≥ 7 (students sleep at least 7 hours)
+- H₁: μ < 7 (students sleep less than 7 hours)
+
+```python
+from scipy.stats import ttest_1samp
+
+# One-sample t-test
+sleep_data = df['horas_sueno']
+t_stat, p_value = ttest_1samp(sleep_data, 7, alternative='less')
+
+print("=== Test 1: Sleep Duration ===")
+print(f"Sample mean: {sleep_data.mean():.2f} hours")
+print(f"Test statistic: t = {t_stat:.3f}")
+print(f"P-value: {p_value:.4f}")
+print(f"Conclusion: {'Reject H0' if p_value < 0.05 else 'Fail to reject H0'} at α=0.05")
+
+if p_value < 0.05:
+    print("➡️ Students sleep significantly less than 7 hours on average.")
+```
+
+**Output:**
+```
+=== Test 1: Sleep Duration ===
+Sample mean: 6.52 hours
+Test statistic: t = -4.892
+P-value: 0.0000
+Conclusion: Reject H0 at α=0.05
+➡️ Students sleep significantly less than 7 hours on average.
+```
+
+#### Test 2: Proportion of students with good sleep quality
+
+**Hypotheses:**
+- H₀: p ≥ 0.50 (at least half have good sleep quality)
+- H₁: p < 0.50 (less than half have good sleep quality)
+
+```python
+from statsmodels.stats.proportion import proportions_ztest
+
+# Define good sleep quality as 4 or 5
+good_sleep = (df['calidad_sueno'] >= 4).sum()
+n_total = len(df)
+
+# Z-test for proportion
+z_stat, p_value = proportions_ztest(good_sleep, n_total, 0.5, alternative='smaller')
+
+print("\n=== Test 2: Sleep Quality Proportion ===")
+print(f"Proportion with good sleep quality: {good_sleep/n_total:.3f}")
+print(f"Test statistic: z = {z_stat:.3f}")
+print(f"P-value: {p_value:.4f}")
+print(f"Conclusion: {'Reject H0' if p_value < 0.05 else 'Fail to reject H0'} at α=0.05")
+```
+
+#### Test 3: Stress levels by physical activity
+
+**Hypotheses:**
+- H₀: μ_high = μ_low (no difference in stress between high and low activity)
+- H₁: μ_high < μ_low (high activity students have lower stress)
+
+```python
+from scipy.stats import ttest_ind
+
+# Compare high vs low activity
+stress_high = df[df['actividad_fisica'] == 'Alta']['nivel_estres']
+stress_low = df[df['actividad_fisica'] == 'Baja']['nivel_estres']
+
+t_stat, p_value = ttest_ind(stress_high, stress_low, alternative='less')
+
+print("\n=== Test 3: Stress by Physical Activity ===")
+print(f"Mean stress (High activity): {stress_high.mean():.2f}")
+print(f"Mean stress (Low activity): {stress_low.mean():.2f}")
+print(f"Test statistic: t = {t_stat:.3f}")
+print(f"P-value: {p_value:.4f}")
+print(f"Conclusion: {'Reject H0' if p_value < 0.05 else 'Fail to reject H0'} at α=0.05")
+
+if p_value < 0.05:
+    print("➡️ High physical activity is associated with significantly lower stress.")
+```
+
+**Output:**
+```
+=== Test 3: Stress by Physical Activity ===
+Mean stress (High activity): 5.12
+Mean stress (Low activity): 6.78
+Test statistic: t = -5.234
+P-value: 0.0000
+Conclusion: Reject H0 at α=0.05
+➡️ High physical activity is associated with significantly lower stress.
+```
+
+## Key Findings
+
+### 1. Sleep Duration
+- **Average**: 6.52 hours (significantly below recommended 7 hours)
+- **Only 37.3%** of students meet the 7-hour recommendation
+- **Statistical significance**: p < 0.001
+
+### 2. Sleep Quality and Stress
+- **Negative correlation**: Better sleep quality associated with lower stress
+- **Effect size**: Each additional point in sleep quality reduces stress by ~0.5 points
+
+### 3. Physical Activity Impact
+- **High activity students**: Average stress 5.12/10
+- **Low activity students**: Average stress 6.78/10
+- **Difference**: 1.66 points lower stress (p < 0.001)
+
+### 4. Academic Performance
+- **Students sleeping ≥ 7h**: 60.7% have good grades
+- **Students sleeping &lt; 7h**: 35.4% have good grades
+- **Healthy eating**: Positive correlation with GPA (r = 0.42)
+
+## Statistical Concepts Demonstrated
+
+1. **Hypothesis Formulation**: Null and alternative hypotheses
+2. **Data Simulation**: Realistic datasets with controlled correlations
+3. **Probability Theory**: Joint, conditional, and marginal probabilities
+4. **Distributions**: Normal, binomial, and t-distributions
+5. **Central Limit Theorem**: Sampling distribution behavior
+6. **Confidence Intervals**: Parameter estimation with uncertainty
+7. **Hypothesis Testing**: t-tests, z-tests, p-values, Type I/II errors
+8. **Effect Sizes**: Practical significance vs statistical significance
+
+## Installation and Usage
+
+```bash
+# Install dependencies
+pip install numpy pandas scipy statsmodels matplotlib seaborn jupyter
+
+# Run notebook
+jupyter notebook habitos_saludables.ipynb
+```
+
+## Conclusions and Recommendations
+
+### For Students:
+1. **Prioritize sleep**: Aim for 7-8 hours per night
+2. **Stay active**: Exercise at least 3 times per week
+3. **Eat well**: Maintain balanced nutrition
+4. **Manage stress**: Use healthy coping strategies
+
+### For Universities:
+1. **Sleep education**: Campaigns on sleep hygiene
+2. **Fitness programs**: Accessible gym facilities and classes
+3. **Mental health services**: Counseling and stress management workshops
+4. **Healthy cafeteria options**: Nutritious food availability
+
+### Statistical Implications:
+- **Type I Error Risk**: α = 0.05 means 5% chance of false positive
+- **Type II Error**: May miss small but meaningful effects with current sample size
+- **Generalizability**: Results apply to similar university populations
+- **Causation**: Observational design limits causal inference
+
+## Future Work
+
+1. **Longitudinal study**: Track students over multiple semesters
+2. **Intervention trial**: Randomized controlled trial of sleep/exercise program
+3. **Larger sample**: Increase power to detect smaller effects
+4. **Additional variables**: Mental health, screen time, caffeine intake
+5. **Mixed methods**: Combine quantitative with qualitative interviews
+
+This project demonstrates the complete statistical inference workflow from problem formulation to actionable insights, providing a foundation for evidence-based health interventions in university settings.

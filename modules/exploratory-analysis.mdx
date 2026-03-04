@@ -1,0 +1,543 @@
+---
+title: 'Exploratory Data Analysis (EDA)'
+description: 'Discover insights through statistical analysis and visualization'
+icon: 'chart-line'
+---
+
+## Overview
+
+Exploratory Data Analysis (EDA) is the critical process of investigating datasets to discover patterns, spot anomalies, test hypotheses, and check assumptions through statistical summaries and graphical representations.
+
+<Info>
+  **Why EDA Matters:**
+  - Reveals data quality issues before modeling
+  - Uncovers hidden patterns and relationships
+  - Guides feature engineering decisions
+  - Validates business assumptions
+</Info>
+
+---
+
+## Complete EDA Workflow
+
+This comprehensive example analyzes e-commerce sales data from ComercioYA:
+
+### Setup and Configuration
+
+```python
+import pandas as pd
+import numpy as np
+import seaborn as sns
+import matplotlib.pyplot as plt
+import statsmodels.api as sm
+from pathlib import Path
+
+# Configuration
+sns.set(style="whitegrid", context="talk")
+plt.rcParams['figure.figsize'] = (10, 6)
+```
+
+---
+
+## 1. Initial Data Assessment (IDA)
+
+### Load and Inspect Data
+
+```python
+print("=== LESSON 1: Initial EDA (IDA) ===")
+
+# Load data without header, assign names manually
+df = pd.read_csv(DATA_PATH)
+
+df.columns = ["Order Date", "Product", "Category", "Region",
+              "Quantity", "Sales", "Profit"]
+
+# Convert date column
+df["Order Date"] = pd.to_datetime(df["Order Date"])
+
+print("First rows:")
+print(df.head())
+
+print("\nDataFrame information:")
+print(df.info())
+```
+
+### Classify Variables
+
+```python
+# Identify variable types
+variables_numericas = ["Quantity", "Sales", "Profit"]
+variables_categoricas = ["Product", "Category", "Region"]
+
+print("Numeric variables:", variables_numericas)
+print("Categorical variables:", variables_categoricas)
+
+# Check for missing values
+missing = df.isna().sum()
+print("\nMissing values per column:")
+print(missing)
+```
+
+### Create Temporal Features
+
+```python
+# Extract time-based features
+df["Year"] = df["Order Date"].dt.year
+df["Month"] = df["Order Date"].dt.month
+df["Quarter"] = df["Order Date"].dt.quarter
+df["DayOfWeek"] = df["Order Date"].dt.dayofweek
+```
+
+<Tip>
+  Always create temporal features early—they're essential for time-series analysis and trend detection.
+</Tip>
+
+---
+
+## 2. Descriptive Statistics
+
+### Statistical Summary
+
+```python
+print("\n=== LESSON 2: Descriptive Statistics ===")
+
+# Extended descriptive statistics
+desc = df[variables_numericas].describe().T
+desc["variance"] = df[variables_numericas].var().values
+
+print("Extended descriptive statistics (including variance):")
+print(desc)
+```
+
+### Distribution Analysis
+
+<CodeGroup>
+
+```python Histograms
+# Generate histograms for numeric variables
+for col in variables_numericas:
+    plt.figure(figsize=(8, 5))
+    sns.histplot(df[col], bins=30, kde=True)
+    plt.title(f"Distribution of {col}")
+    plt.xlabel(col)
+    plt.ylabel("Frequency")
+    plt.tight_layout()
+    plt.savefig(f"hist_{col.lower()}.png")
+    plt.close()
+```
+
+```python Boxplots
+# Boxplots by category
+for col in ["Sales", "Profit"]:
+    plt.figure(figsize=(8, 5))
+    sns.boxplot(data=df, x="Category", y=col)
+    plt.title(f"{col} by Category")
+    plt.tight_layout()
+    plt.savefig(f"box_{col.lower()}_by_category.png")
+    plt.close()
+```
+
+</CodeGroup>
+
+### Outlier Detection
+
+```python
+# Detect outliers using IQR method
+Q1 = df["Profit"].quantile(0.25)
+Q3 = df["Profit"].quantile(0.75)
+IQR = Q3 - Q1
+
+lower_bound = Q1 - 1.5 * IQR
+upper_bound = Q3 + 1.5 * IQR
+
+outliers_profit = df[
+    (df["Profit"] < lower_bound) | (df["Profit"] > upper_bound)
+]
+
+print(f"Number of outliers in Profit: {len(outliers_profit)}")
+print(f"Percentage: {len(outliers_profit)/len(df)*100:.2f}%")
+```
+
+---
+
+## 3. Correlation Analysis
+
+### Correlation Matrix
+
+```python
+print("\n=== LESSON 3: Correlation ===")
+
+# Calculate Pearson correlation
+corr_matrix = df[variables_numericas].corr(method="pearson")
+
+print("Correlation matrix (Pearson):")
+print(corr_matrix)
+```
+
+### Correlation Heatmap
+
+```python
+plt.figure(figsize=(6, 5))
+sns.heatmap(corr_matrix, annot=True, cmap="coolwarm", vmin=-1, vmax=1)
+plt.title("Correlation Matrix - Numeric Variables")
+plt.tight_layout()
+plt.savefig("heatmap_correlation.png")
+plt.close()
+```
+
+<Note>
+  Strong correlations (|r| > 0.7) indicate potential multicollinearity, which matters for regression models.
+</Note>
+
+### Scatter Plots
+
+```python
+# Sales vs Profit by Category
+plt.figure(figsize=(7, 5))
+sns.scatterplot(data=df, x="Sales", y="Profit", hue="Category")
+plt.title("Sales vs Profit by Category")
+plt.tight_layout()
+plt.savefig("scatter_sales_profit_category.png")
+plt.close()
+
+# Quantity vs Profit by Region
+plt.figure(figsize=(7, 5))
+sns.scatterplot(data=df, x="Quantity", y="Profit", hue="Region")
+plt.title("Quantity vs Profit by Region")
+plt.tight_layout()
+plt.savefig("scatter_quantity_profit_region.png")
+plt.close()
+```
+
+---
+
+## 4. Linear Regression Analysis
+
+### Simple Linear Regression
+
+```python
+print("\n=== LESSON 4: Linear Regression ===")
+
+y = df["Profit"]
+
+# Simple model: Profit ~ Sales
+X_simple = df[["Sales"]]
+X_simple = sm.add_constant(X_simple)
+model_simple = sm.OLS(y, X_simple).fit()
+
+print("Simple model: Profit ~ Sales")
+print(model_simple.summary())
+```
+
+<Tabs>
+  <Tab title="Key Metrics">
+    - **R-squared**: Proportion of variance explained (0-1)
+    - **Coefficients**: Effect of each predictor on the outcome
+    - **P-values**: Statistical significance (< 0.05 is significant)
+    - **Residuals**: Difference between predicted and actual values
+  </Tab>
+  
+  <Tab title="Interpretation">
+    ```
+    Profit = β₀ + β₁ * Sales
+    
+    - β₀ (Intercept): Expected profit when sales = 0
+    - β₁ (Slope): Change in profit per unit change in sales
+    - If β₁ = 0.3, then each $1 increase in sales → $0.30 profit
+    ```
+  </Tab>
+</Tabs>
+
+### Multiple Linear Regression
+
+```python
+# Multiple model: Profit ~ Sales + Quantity
+X_multi = df[["Sales", "Quantity"]]
+X_multi = sm.add_constant(X_multi)
+model_multi = sm.OLS(y, X_multi).fit()
+
+print("\nMultiple model: Profit ~ Sales + Quantity")
+print(model_multi.summary())
+```
+
+### Visualize Regression
+
+```python
+plt.figure(figsize=(7, 5))
+sns.regplot(data=df, x="Sales", y="Profit", scatter_kws={"alpha": 0.5})
+plt.title("Simple Linear Regression: Profit ~ Sales")
+plt.tight_layout()
+plt.savefig("reg_simple_profit_sales.png")
+plt.close()
+```
+
+---
+
+## 5. Advanced Visualizations with Seaborn
+
+### Pairplot: Multi-variable Relationships
+
+```python
+print("\n=== LESSON 5: Visual Analysis with Seaborn ===")
+
+# Pairplot for all numeric variables
+sns.pairplot(df[["Sales", "Profit", "Quantity"]])
+plt.savefig("pairplot_numeric.png")
+plt.close()
+```
+
+### Violin Plot: Distribution by Groups
+
+```python
+# Distribution of Profit by Region
+plt.figure(figsize=(8, 5))
+sns.violinplot(data=df, x="Region", y="Profit", inner="quartile")
+plt.title("Distribution of Profit by Region")
+plt.tight_layout()
+plt.savefig("violin_profit_region.png")
+plt.close()
+```
+
+### Joint Plot: Bivariate Analysis
+
+```python
+# Sales vs Profit with marginal distributions
+jp = sns.jointplot(data=df, x="Sales", y="Profit", kind="hex", height=7)
+jp.fig.suptitle("Joint Plot: Sales vs Profit", y=1.02)
+jp.savefig("joint_sales_profit.png")
+plt.close()
+```
+
+### FacetGrid: Multi-faceted Analysis
+
+```python
+# Distribution of Sales by Region and Category
+g = sns.FacetGrid(df, col="Region", hue="Category", col_wrap=2, height=4)
+g.map(sns.histplot, "Sales", bins=20, alpha=0.6)
+g.add_legend()
+g.fig.subplots_adjust(top=0.9)
+g.fig.suptitle("Sales Distribution by Region and Category")
+g.savefig("facet_sales_region_category.png")
+plt.close()
+```
+
+<Check>
+  **When to Use Each Visualization:**
+  - **Pairplot**: Explore all variable relationships at once
+  - **Violinplot**: Compare distributions across categories
+  - **Jointplot**: Deep dive into two-variable relationship
+  - **FacetGrid**: Analyze patterns across multiple dimensions
+</Check>
+
+---
+
+## 6. Custom Matplotlib Visualizations
+
+### Multi-panel Dashboard
+
+```python
+print("\n=== LESSON 6: Custom Visualizations with Matplotlib ===")
+
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+
+# Panel 1: Total Sales by Year
+sales_by_year = df.groupby("Year")["Sales"].sum()
+axes[0].bar(sales_by_year.index, sales_by_year.values, color="steelblue")
+axes[0].set_title("Total Sales by Year")
+axes[0].set_xlabel("Year")
+axes[0].set_ylabel("Sales")
+
+# Panel 2: Total Sales by Category
+sales_by_cat = df.groupby("Category")["Sales"].sum().sort_values(ascending=False)
+axes[1].bar(sales_by_cat.index, sales_by_cat.values, color="seagreen")
+axes[1].set_title("Total Sales by Category")
+axes[1].set_xlabel("Category")
+axes[1].tick_params(axis='x', rotation=45)
+
+# Panel 3: Total Profit by Region
+profit_by_region = df.groupby("Region")["Profit"].sum()
+axes[2].bar(profit_by_region.index, profit_by_region.values, color="darkorange")
+axes[2].set_title("Total Profit by Region")
+axes[2].set_xlabel("Region")
+
+fig.suptitle("ComercioYA Performance Summary", fontsize=16)
+plt.tight_layout()
+plt.subplots_adjust(top=0.85)
+plt.savefig("summary_subplots.png")
+plt.close()
+```
+
+### Time Series Analysis
+
+```python
+# Monthly sales trend
+monthly_sales = df.groupby(["Year", "Month"])["Sales"].sum().reset_index()
+monthly_sales["Date"] = pd.to_datetime(
+    monthly_sales[["Year", "Month"]].assign(day=1)
+)
+
+plt.figure(figsize=(12, 5))
+plt.plot(monthly_sales["Date"], monthly_sales["Sales"], marker='o')
+plt.title("Monthly Sales Trend")
+plt.xlabel("Date")
+plt.ylabel("Total Sales")
+plt.xticks(rotation=45)
+plt.grid(True, alpha=0.3)
+plt.tight_layout()
+plt.savefig("time_series_sales.png")
+plt.close()
+```
+
+---
+
+## Aggregation and Grouping Analysis
+
+### Multi-level Aggregations
+
+```python
+# Summary by customer
+if "id_cliente" in df.columns and "monto" in df.columns:
+    resumen_cliente = (
+        df
+        .groupby("id_cliente")
+        .agg(
+            monto_total=("monto", "sum"),
+            monto_promedio=("monto", "mean"),
+            transacciones=("monto", "count")
+        )
+        .reset_index()
+    )
+    print("\nSummary by customer (first rows):")
+    print(resumen_cliente.head())
+```
+
+### Pivot Tables
+
+```python
+# Create pivot table: Region x Category
+pivot = df.pivot_table(
+    index="Region",
+    columns="Category",
+    values="Sales",
+    aggfunc="sum",
+    margins=True  # Add totals
+)
+
+print("\nPivot Table: Sales by Region and Category")
+print(pivot)
+```
+
+---
+
+## Key Insights Generation
+
+### Descriptive Summary
+
+```python
+# Generate business insights
+print("\n=== KEY INSIGHTS ===")
+
+# Top performing products
+top_products = df.groupby("Product")["Sales"].sum().nlargest(5)
+print("\nTop 5 Products by Sales:")
+print(top_products)
+
+# Most profitable regions
+profit_by_region = df.groupby("Region")["Profit"].sum().sort_values(ascending=False)
+print("\nProfit by Region (descending):")
+print(profit_by_region)
+
+# Category performance
+category_metrics = df.groupby("Category").agg({
+    "Sales": "sum",
+    "Profit": "sum",
+    "Quantity": "sum"
+})
+print("\nCategory Performance Metrics:")
+print(category_metrics)
+```
+
+---
+
+## EDA Best Practices
+
+<AccordionGroup>
+  <Accordion title="Start Simple, Then Go Deep">
+    1. Begin with univariate analysis (one variable at a time)
+    2. Move to bivariate analysis (relationships between two variables)
+    3. Explore multivariate patterns (three or more variables)
+  </Accordion>
+  
+  <Accordion title="Always Visualize">
+    - Numbers alone can be misleading (Anscombe's Quartet)
+    - Use multiple visualization types for the same data
+    - Choose appropriate chart types for your data
+  </Accordion>
+  
+  <Accordion title="Question Your Assumptions">
+    - Don't assume data is clean or complete
+    - Verify business logic with domain experts
+    - Look for unexpected patterns or anomalies
+  </Accordion>
+  
+  <Accordion title="Document Everything">
+    - Record all findings and insights
+    - Note data quality issues discovered
+    - Keep track of visualization interpretations
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Visualization Selection Guide
+
+<CardGroup cols={3}>
+  <Card title="Distribution" icon="chart-bar">
+    Histogram, KDE, Box Plot, Violin Plot
+  </Card>
+  <Card title="Relationship" icon="chart-scatter">
+    Scatter Plot, Line Plot, Regression Plot
+  </Card>
+  <Card title="Comparison" icon="chart-column">
+    Bar Chart, Grouped Bar, Stacked Bar
+  </Card>
+  <Card title="Composition" icon="chart-pie">
+    Pie Chart, Stacked Area, Treemap
+  </Card>
+  <Card title="Time Series" icon="chart-line">
+    Line Plot, Area Chart, Time Series
+  </Card>
+  <Card title="Correlation" icon="table-cells">
+    Heatmap, Pair Plot, Correlation Matrix
+  </Card>
+</CardGroup>
+
+---
+
+## Export Analysis Results
+
+```python
+# Save all figures to directory
+FIGURES_DIR = Path("figures")
+FIGURES_DIR.mkdir(exist_ok=True)
+
+print(f"\nAll visualizations saved to '{FIGURES_DIR}/'")
+print("Use these results to create your technical EDA report.")
+```
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Wrangling" icon="broom" href="/modules/data-wrangling">
+    Clean data for better analysis
+  </Card>
+  <Card title="Machine Learning" icon="brain" href="/modules/machine-learning">
+    Build predictive models from insights
+  </Card>
+</CardGroup>
+
+<Tip>
+  EDA is iterative—return to exploration as you learn more about your data and business problem.
+</Tip>

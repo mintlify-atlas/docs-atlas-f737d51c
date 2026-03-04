@@ -1,0 +1,883 @@
+---
+title: 'Building Neural Networks'
+description: 'Complete guide to designing, training, and evaluating neural networks with Keras and PyTorch using Fashion-MNIST'
+icon: 'network-wired'
+---
+
+## Overview
+
+This module provides hands-on experience building neural network models using **real code from Module A8** projects. You'll implement both dense and convolutional architectures using Keras/TensorFlow and PyTorch.
+
+<Info>
+**Project Goal**: Build an intelligent clothing image classifier using the Fashion-MNIST dataset (28×28 grayscale images, 10 categories).
+</Info>
+
+## Dataset: Fashion-MNIST
+
+### Loading Data
+
+<CodeGroup>
+
+```python Keras
+import tensorflow as tf
+from tensorflow import keras
+import numpy as np
+
+# Load Fashion-MNIST
+(x_train, y_train), (x_test, y_test) = keras.datasets.fashion_mnist.load_data()
+
+# Normalize to [0, 1]
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+
+# Class names
+class_names = [
+    'Camiseta/top', 'Pantalón', 'Suéter', 'Vestido', 'Abrigo',
+    'Sandalia', 'Camisa', 'Zapatilla', 'Bolso', 'Botín'
+]
+
+print(f"Training samples: {x_train.shape[0]}")
+print(f"Test samples: {x_test.shape[0]}")
+print(f"Image shape: {x_train.shape[1:]}")
+```
+
+```python PyTorch
+import torch
+from torch.utils.data import DataLoader
+from torchvision import datasets, transforms
+
+# Transform: normalize to [-1, 1]
+transform = transforms.Compose([
+    transforms.ToTensor(),
+    transforms.Normalize((0.5,), (0.5,))
+])
+
+# Load Fashion-MNIST
+train_dataset = datasets.FashionMNIST(
+    root='data',
+    train=True,
+    download=True,
+    transform=transform
+)
+
+test_dataset = datasets.FashionMNIST(
+    root='data',
+    train=False,
+    download=True,
+    transform=transform
+)
+
+# Create data loaders
+train_loader = DataLoader(train_dataset, batch_size=256, shuffle=True)
+test_loader = DataLoader(test_dataset, batch_size=256, shuffle=False)
+
+class_names = [
+    'Camiseta/top', 'Pantalón', 'Suéter', 'Vestido', 'Abrigo',
+    'Sandalia', 'Camisa', 'Zapatilla', 'Bolso', 'Botín'
+]
+```
+
+</CodeGroup>
+
+### Visualizing Samples
+
+```python
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(8, 8))
+for i in range(9):
+    plt.subplot(3, 3, i + 1)
+    plt.imshow(x_train[i], cmap='gray')
+    plt.title(class_names[y_train[i]])
+    plt.axis('off')
+plt.tight_layout()
+plt.show()
+```
+
+## Binary Classification (Lesson 1)
+
+### Problem: Sneaker vs Ankle Boot
+
+Start with a simpler task: distinguish between **Zapatilla (7)** and **Botín (9)**.
+
+<Steps>
+  <Step title="Filter Dataset">
+    Extract only samples from classes 7 and 9
+  </Step>
+  
+  <Step title="Create Binary Labels">
+    Convert labels: 1 for Zapatilla (7), 0 for Botín (9)
+  </Step>
+  
+  <Step title="Build Dense Network">
+    Input (784) → Dense(128, ReLU) → Dense(1, Sigmoid)
+  </Step>
+  
+  <Step title="Train with Binary Cross-Entropy">
+    Optimize to minimize binary classification loss
+  </Step>
+</Steps>
+
+<CodeGroup>
+
+```python Keras
+from tensorflow.keras import layers
+
+# Filter binary classes (7 and 9)
+binary_train_mask = (y_train == 7) | (y_train == 9)
+binary_test_mask = (y_test == 7) | (y_test == 9)
+
+x_train_bin = x_train[binary_train_mask].reshape(-1, 28 * 28)
+y_train_bin = (y_train[binary_train_mask] == 7).astype(int)
+
+x_test_bin = x_test[binary_test_mask].reshape(-1, 28 * 28)
+y_test_bin = (y_test[binary_test_mask] == 7).astype(int)
+
+# Build binary dense model
+model_bin = keras.Sequential([
+    layers.Input(shape=(784,)),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(1, activation='sigmoid')
+])
+
+# Compile
+model_bin.compile(
+    loss='binary_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
+)
+
+# Train
+history_bin = model_bin.fit(
+    x_train_bin, y_train_bin,
+    validation_split=0.2,
+    epochs=10,
+    batch_size=128,
+    verbose=1
+)
+
+# Evaluate
+test_loss, test_acc = model_bin.evaluate(x_test_bin, y_test_bin)
+print(f"Test accuracy: {test_acc:.4f}")
+```
+
+```python PyTorch
+import torch.nn as nn
+import torch.nn.functional as F
+
+# Binary dense model
+class BinaryDenseNet(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(28*28, 128)
+        self.fc2 = nn.Linear(128, 1)
+    
+    def forward(self, x):
+        x = x.view(-1, 28*28)
+        x = F.relu(self.fc1(x))
+        x = torch.sigmoid(self.fc2(x))
+        return x
+
+model_bin = BinaryDenseNet()
+criterion = nn.BCELoss()
+optimizer = torch.optim.Adam(model_bin.parameters(), lr=1e-3)
+
+# Training loop
+for epoch in range(10):
+    model_bin.train()
+    for images, labels in train_loader_bin:  # Binary loader
+        labels_bin = (labels == 7).float().unsqueeze(1)
+        
+        optimizer.zero_grad()
+        outputs = model_bin(images)
+        loss = criterion(outputs, labels_bin)
+        loss.backward()
+        optimizer.step()
+
+# Evaluation
+model_bin.eval()
+correct, total = 0, 0
+with torch.no_grad():
+    for images, labels in test_loader_bin:
+        labels_bin = (labels == 7).float().unsqueeze(1)
+        outputs = model_bin(images)
+        predicted = (outputs >= 0.5).float()
+        correct += (predicted == labels_bin).sum().item()
+        total += labels_bin.size(0)
+
+print(f"Test accuracy: {correct/total:.4f}")
+```
+
+</CodeGroup>
+
+<Note>
+**Expected Result**: ~96-97% accuracy on binary sneaker vs ankle boot classification.
+</Note>
+
+## Dense Network for 10 Classes (Lesson 3)
+
+### Architecture
+
+Now tackle all 10 clothing categories:
+
+```
+Input (784) → Dense(256, ReLU) → Dropout(0.3) → 
+Dense(128, ReLU) → Dropout(0.3) → Dense(10, Softmax)
+```
+
+<Tip>
+**Why Dropout?** Prevents overfitting by randomly deactivating 30% of neurons during training. Forces network to learn robust features.
+</Tip>
+
+<CodeGroup>
+
+```python Keras
+# Flatten images for dense network
+x_train_flat = x_train.reshape(-1, 28 * 28)
+x_test_flat = x_test.reshape(-1, 28 * 28)
+
+# Build dense model
+model_dense = keras.Sequential([
+    layers.Input(shape=(784,)),
+    layers.Dense(256, activation='relu'),
+    layers.Dropout(0.3),
+    layers.Dense(128, activation='relu'),
+    layers.Dropout(0.3),
+    layers.Dense(10, activation='softmax')
+])
+
+model_dense.summary()
+
+# Compile
+model_dense.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
+)
+
+# Train
+history_dense = model_dense.fit(
+    x_train_flat, y_train,
+    validation_split=0.2,
+    epochs=15,
+    batch_size=256,
+    verbose=1
+)
+
+# Evaluate
+test_loss, test_acc = model_dense.evaluate(x_test_flat, y_test)
+print(f"Dense network test accuracy: {test_acc:.4f}")
+```
+
+```python PyTorch
+class DenseNetMNIST(nn.Module):
+    def __init__(self):
+        super().__init__()
+        self.fc1 = nn.Linear(28*28, 256)
+        self.dropout1 = nn.Dropout(0.3)
+        self.fc2 = nn.Linear(256, 128)
+        self.dropout2 = nn.Dropout(0.3)
+        self.fc3 = nn.Linear(128, 10)
+    
+    def forward(self, x):
+        x = x.view(-1, 28*28)
+        x = F.relu(self.fc1(x))
+        x = self.dropout1(x)
+        x = F.relu(self.fc2(x))
+        x = self.dropout2(x)
+        x = self.fc3(x)  # No softmax (CrossEntropyLoss includes it)
+        return x
+
+model_dense = DenseNetMNIST()
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model_dense.parameters(), lr=1e-3)
+
+# Training
+for epoch in range(15):
+    model_dense.train()
+    for images, labels in train_loader:
+        optimizer.zero_grad()
+        outputs = model_dense(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+# Evaluation
+model_dense.eval()
+correct, total = 0, 0
+with torch.no_grad():
+    for images, labels in test_loader:
+        outputs = model_dense(images)
+        _, predicted = torch.max(outputs, 1)
+        correct += (predicted == labels).sum().item()
+        total += labels.size(0)
+
+print(f"Dense network test accuracy: {correct/total:.4f}")
+```
+
+</CodeGroup>
+
+<Note>
+**Expected Result**: ~88-89% test accuracy with dense network.
+</Note>
+
+## Convolutional Neural Network (Lesson 4)
+
+### Why CNNs for Images?
+
+<CardGroup cols={2}>
+  <Card title="Dense Networks" icon="table">
+    • Treat images as flat vectors  
+    • Ignore spatial structure  
+    • Many parameters (overfitting risk)  
+    • ~88% accuracy on Fashion-MNIST
+  </Card>
+  
+  <Card title="CNNs" icon="image">
+    • Exploit 2D spatial structure  
+    • Local pattern detection  
+    • Fewer parameters (weight sharing)  
+    • **~90%+ accuracy on Fashion-MNIST**
+  </Card>
+</CardGroup>
+
+### CNN Architecture
+
+```
+Input (28×28×1) → Conv2D(32, 3×3) → ReLU → MaxPool(2×2) →
+Conv2D(64, 3×3) → ReLU → MaxPool(2×2) → Flatten →
+Dense(128) → Dropout(0.5) → Dense(10)
+```
+
+<Steps>
+  <Step title="Convolutional Layers">
+    Extract spatial features using small 3×3 filters
+  </Step>
+  
+  <Step title="Pooling Layers">
+    Downsample feature maps (reduces size, increases invariance)
+  </Step>
+  
+  <Step title="Dense Layers">
+    Combine extracted features for final classification
+  </Step>
+</Steps>
+
+<CodeGroup>
+
+```python Keras
+# Add channel dimension for CNN
+x_train_cnn = x_train[..., np.newaxis]  # Shape: (60000, 28, 28, 1)
+x_test_cnn = x_test[..., np.newaxis]    # Shape: (10000, 28, 28, 1)
+
+# Build CNN
+model_cnn = keras.Sequential([
+    layers.Input(shape=(28, 28, 1)),
+    
+    # First convolutional block
+    layers.Conv2D(32, kernel_size=3, activation='relu'),
+    layers.MaxPooling2D(pool_size=2),
+    
+    # Second convolutional block
+    layers.Conv2D(64, kernel_size=3, activation='relu'),
+    layers.MaxPooling2D(pool_size=2),
+    
+    # Classifier
+    layers.Flatten(),
+    layers.Dropout(0.5),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+
+model_cnn.summary()
+
+# Compile
+model_cnn.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
+)
+
+# Train
+history_cnn = model_cnn.fit(
+    x_train_cnn, y_train,
+    validation_split=0.2,
+    epochs=15,
+    batch_size=256,
+    verbose=1
+)
+
+# Evaluate
+test_loss_cnn, test_acc_cnn = model_cnn.evaluate(x_test_cnn, y_test)
+print(f"CNN test accuracy: {test_acc_cnn:.4f}")
+```
+
+```python PyTorch
+class CNNMNIST(nn.Module):
+    def __init__(self):
+        super().__init__()
+        # Conv layers
+        self.conv1 = nn.Conv2d(1, 32, kernel_size=3)
+        self.pool1 = nn.MaxPool2d(2, 2)
+        self.conv2 = nn.Conv2d(32, 64, kernel_size=3)
+        self.pool2 = nn.MaxPool2d(2, 2)
+        
+        # Dense layers
+        self.fc1 = nn.Linear(64 * 5 * 5, 128)  # After 2 pools: 28→13→5
+        self.dropout = nn.Dropout(0.5)
+        self.fc2 = nn.Linear(128, 10)
+    
+    def forward(self, x):
+        # Conv block 1
+        x = F.relu(self.conv1(x))
+        x = self.pool1(x)
+        
+        # Conv block 2
+        x = F.relu(self.conv2(x))
+        x = self.pool2(x)
+        
+        # Classifier
+        x = x.view(-1, 64 * 5 * 5)
+        x = F.relu(self.fc1(x))
+        x = self.dropout(x)
+        x = self.fc2(x)
+        return x
+
+model_cnn = CNNMNIST()
+criterion = nn.CrossEntropyLoss()
+optimizer = torch.optim.Adam(model_cnn.parameters(), lr=1e-3)
+
+# Training
+for epoch in range(15):
+    model_cnn.train()
+    for images, labels in train_loader:
+        optimizer.zero_grad()
+        outputs = model_cnn(images)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+
+# Evaluation
+model_cnn.eval()
+correct, total = 0, 0
+with torch.no_grad():
+    for images, labels in test_loader:
+        outputs = model_cnn(images)
+        _, predicted = torch.max(outputs, 1)
+        correct += (predicted == labels).sum().item()
+        total += labels.size(0)
+
+print(f"CNN test accuracy: {correct/total:.4f}")
+```
+
+</CodeGroup>
+
+<Note>
+**Expected Result**: ~90-91% test accuracy with CNN - a **2-3% improvement** over dense networks!
+</Note>
+
+## Comparing Dense vs CNN
+
+### Performance Metrics
+
+| Metric | Dense Network | CNN |
+|--------|--------------|-----|
+| **Test Accuracy** | ~88.9% | ~90.6% |
+| **Parameters** | ~235K | ~225K |
+| **Training Time** | Faster | Moderate |
+| **Overfitting Risk** | Higher | Lower |
+
+### Training Curves
+
+```python
+import matplotlib.pyplot as plt
+
+def plot_history(history, title):
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 4))
+    
+    # Loss
+    ax1.plot(history.history['loss'], label='Train Loss')
+    ax1.plot(history.history['val_loss'], label='Val Loss')
+    ax1.set_xlabel('Epoch')
+    ax1.set_ylabel('Loss')
+    ax1.set_title(f'{title} - Loss')
+    ax1.legend()
+    
+    # Accuracy
+    ax2.plot(history.history['accuracy'], label='Train Acc')
+    ax2.plot(history.history['val_accuracy'], label='Val Acc')
+    ax2.set_xlabel('Epoch')
+    ax2.set_ylabel('Accuracy')
+    ax2.set_title(f'{title} - Accuracy')
+    ax2.legend()
+    
+    plt.tight_layout()
+    plt.show()
+
+plot_history(history_dense, 'Dense Network')
+plot_history(history_cnn, 'CNN')
+```
+
+## Making Predictions
+
+### Single Image Prediction
+
+<CodeGroup>
+
+```python Keras
+# Get a test sample
+idx = 0
+sample = x_test_cnn[idx:idx+1]
+true_label = y_test[idx]
+
+# Predict
+model_cnn.eval()
+predictions = model_cnn.predict(sample)
+predicted_class = np.argmax(predictions[0])
+confidence = np.max(predictions[0])
+
+# Visualize
+plt.imshow(x_test[idx], cmap='gray')
+plt.title(f"True: {class_names[true_label]}\n"
+          f"Predicted: {class_names[predicted_class]} ({confidence:.2%})")
+plt.axis('off')
+plt.show()
+```
+
+```python PyTorch
+# Get a test sample
+images, labels = next(iter(test_loader))
+idx = 0
+sample = images[idx:idx+1]
+true_label = labels[idx].item()
+
+# Predict
+model_cnn.eval()
+with torch.no_grad():
+    output = model_cnn(sample)
+    probabilities = F.softmax(output, dim=1)
+    confidence, predicted_class = torch.max(probabilities, 1)
+
+predicted_class = predicted_class.item()
+confidence = confidence.item()
+
+# Visualize
+plt.imshow(sample[0][0].cpu(), cmap='gray')
+plt.title(f"True: {class_names[true_label]}\n"
+          f"Predicted: {class_names[predicted_class]} ({confidence:.2%})")
+plt.axis('off')
+plt.show()
+```
+
+</CodeGroup>
+
+### Batch Predictions
+
+```python
+# Keras
+test_predictions = model_cnn.predict(x_test_cnn)
+predicted_classes = np.argmax(test_predictions, axis=1)
+
+# PyTorch
+model_cnn.eval()
+all_predictions = []
+with torch.no_grad():
+    for images, _ in test_loader:
+        outputs = model_cnn(images)
+        _, predicted = torch.max(outputs, 1)
+        all_predictions.extend(predicted.cpu().numpy())
+```
+
+## Model Evaluation
+
+### Confusion Matrix
+
+```python
+from sklearn.metrics import confusion_matrix, classification_report
+import seaborn as sns
+
+# Compute confusion matrix
+cm = confusion_matrix(y_test, predicted_classes)
+
+# Plot
+plt.figure(figsize=(10, 8))
+sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+            xticklabels=class_names,
+            yticklabels=class_names)
+plt.xlabel('Predicted')
+plt.ylabel('True')
+plt.title('Confusion Matrix - CNN on Fashion-MNIST')
+plt.xticks(rotation=45, ha='right')
+plt.tight_layout()
+plt.show()
+```
+
+### Classification Report
+
+```python
+print(classification_report(y_test, predicted_classes, 
+                          target_names=class_names))
+```
+
+Output:
+```
+              precision    recall  f1-score   support
+
+Camiseta/top       0.85      0.88      0.86      1000
+   Pantalón       0.99      0.97      0.98      1000
+     Suéter       0.85      0.86      0.85      1000
+    Vestido       0.91      0.93      0.92      1000
+     Abrigo       0.87      0.85      0.86      1000
+   ...
+```
+
+### Per-Class Accuracy
+
+```python
+for i, class_name in enumerate(class_names):
+    class_mask = (y_test == i)
+    class_acc = (predicted_classes[class_mask] == i).mean()
+    print(f"{class_name}: {class_acc:.2%}")
+```
+
+## Improving Performance
+
+<AccordionGroup>
+  <Accordion title="Data Augmentation">
+    Apply random transformations during training to increase dataset diversity.
+    
+    ```python
+    # Keras
+    from tensorflow.keras.preprocessing.image import ImageDataGenerator
+    
+    datagen = ImageDataGenerator(
+        rotation_range=10,
+        width_shift_range=0.1,
+        height_shift_range=0.1,
+        zoom_range=0.1
+    )
+    
+    model.fit(datagen.flow(x_train, y_train, batch_size=256),
+              epochs=20, validation_data=(x_test, y_test))
+    ```
+  </Accordion>
+  
+  <Accordion title="Batch Normalization">
+    Normalize activations between layers for faster, more stable training.
+    
+    ```python
+    # Add after Conv2D layers
+    layers.Conv2D(32, 3, activation='relu'),
+    layers.BatchNormalization(),
+    layers.MaxPooling2D(2)
+    ```
+  </Accordion>
+  
+  <Accordion title="Learning Rate Scheduling">
+    Reduce learning rate as training progresses.
+    
+    ```python
+    # Keras
+    from tensorflow.keras.callbacks import ReduceLROnPlateau
+    
+    lr_scheduler = ReduceLROnPlateau(
+        monitor='val_loss',
+        factor=0.5,
+        patience=3,
+        min_lr=1e-6
+    )
+    
+    model.fit(..., callbacks=[lr_scheduler])
+    ```
+  </Accordion>
+  
+  <Accordion title="Early Stopping">
+    Stop training when validation performance plateaus.
+    
+    ```python
+    # Keras
+    from tensorflow.keras.callbacks import EarlyStopping
+    
+    early_stop = EarlyStopping(
+        monitor='val_loss',
+        patience=5,
+        restore_best_weights=True
+    )
+    
+    model.fit(..., callbacks=[early_stop])
+    ```
+  </Accordion>
+</AccordionGroup>
+
+## Saving and Loading Models
+
+<CodeGroup>
+
+```python Keras
+# Save entire model
+model_cnn.save('fashion_cnn_model.h5')
+
+# Load model
+from tensorflow.keras.models import load_model
+loaded_model = load_model('fashion_cnn_model.h5')
+
+# Save weights only
+model_cnn.save_weights('fashion_cnn_weights.h5')
+model_cnn.load_weights('fashion_cnn_weights.h5')
+```
+
+```python PyTorch
+# Save model state
+torch.save(model_cnn.state_dict(), 'fashion_cnn_pytorch.pth')
+
+# Load model
+model_cnn = CNNMNIST()
+model_cnn.load_state_dict(torch.load('fashion_cnn_pytorch.pth'))
+model_cnn.eval()
+
+# Save entire model (including architecture)
+torch.save(model_cnn, 'fashion_cnn_full.pth')
+loaded_model = torch.load('fashion_cnn_full.pth')
+```
+
+</CodeGroup>
+
+## Common Pitfalls and Solutions
+
+<Warning>
+**Overfitting**: Model performs well on training data but poorly on test data.
+
+**Solutions**:
+- Add Dropout layers
+- Use data augmentation
+- Reduce model complexity
+- Collect more training data
+</Warning>
+
+<Warning>
+**Underfitting**: Model performs poorly on both training and test data.
+
+**Solutions**:
+- Increase model capacity (more layers/neurons)
+- Train for more epochs
+- Reduce regularization (lower dropout)
+- Check data preprocessing
+</Warning>
+
+<Warning>
+**Vanishing Gradients**: Deep networks fail to learn.
+
+**Solutions**:
+- Use ReLU activation (not sigmoid/tanh)
+- Add Batch Normalization
+- Use residual connections (ResNet)
+- Initialize weights properly
+</Warning>
+
+## Project Results Summary
+
+From the **Module A8 Fashion-MNIST classifier**:
+
+<CardGroup cols={3}>
+  <Card title="Binary Classification" icon="check-double">
+    **96-97%** accuracy distinguishing sneakers from ankle boots using simple dense network
+  </Card>
+  
+  <Card title="Dense Network (10 classes)" icon="table">
+    **~88-89%** test accuracy with 2-layer dense network and dropout
+  </Card>
+  
+  <Card title="CNN (10 classes)" icon="image">
+    **~90-91%** test accuracy - best performance with convolutional architecture
+  </Card>
+</CardGroup>
+
+## Complete Training Pipeline
+
+```python
+import tensorflow as tf
+from tensorflow import keras
+from tensorflow.keras import layers
+import numpy as np
+import matplotlib.pyplot as plt
+
+# 1. Load and preprocess data
+(x_train, y_train), (x_test, y_test) = keras.datasets.fashion_mnist.load_data()
+x_train = x_train.astype('float32') / 255.0
+x_test = x_test.astype('float32') / 255.0
+x_train = x_train[..., np.newaxis]
+x_test = x_test[..., np.newaxis]
+
+# 2. Build CNN model
+model = keras.Sequential([
+    layers.Input(shape=(28, 28, 1)),
+    layers.Conv2D(32, 3, activation='relu'),
+    layers.MaxPooling2D(2),
+    layers.Conv2D(64, 3, activation='relu'),
+    layers.MaxPooling2D(2),
+    layers.Flatten(),
+    layers.Dropout(0.5),
+    layers.Dense(128, activation='relu'),
+    layers.Dense(10, activation='softmax')
+])
+
+# 3. Compile
+model.compile(
+    loss='sparse_categorical_crossentropy',
+    optimizer='adam',
+    metrics=['accuracy']
+)
+
+# 4. Train with callbacks
+from tensorflow.keras.callbacks import EarlyStopping, ReduceLROnPlateau
+
+callbacks = [
+    EarlyStopping(monitor='val_loss', patience=5, restore_best_weights=True),
+    ReduceLROnPlateau(monitor='val_loss', factor=0.5, patience=3)
+]
+
+history = model.fit(
+    x_train, y_train,
+    validation_split=0.2,
+    epochs=20,
+    batch_size=256,
+    callbacks=callbacks,
+    verbose=1
+)
+
+# 5. Evaluate
+test_loss, test_acc = model.evaluate(x_test, y_test)
+print(f"\nFinal Test Accuracy: {test_acc:.4f}")
+
+# 6. Save model
+model.save('fashion_mnist_cnn.h5')
+print("Model saved successfully!")
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Advanced Topics" icon="rocket" href="/advanced/transfer-learning">
+    Explore transfer learning, ResNets, and state-of-the-art architectures
+  </Card>
+  
+  <Card title="Deploy Models" icon="cloud" href="/deployment/model-serving">
+    Learn to deploy your models to production with TensorFlow Serving or FastAPI
+  </Card>
+  
+  <Card title="Deep Learning Basics" icon="book" href="/modules/deep-learning">
+    Review neural network fundamentals and activation functions
+  </Card>
+  
+  <Card title="Unsupervised Learning" icon="chart-scatter" href="/modules/unsupervised-learning">
+    Return to clustering and dimensionality reduction techniques
+  </Card>
+</CardGroup>
+
+## Additional Resources
+
+- [Keras Sequential Model Guide](https://keras.io/guides/sequential_model/)
+- [PyTorch Neural Networks Tutorial](https://pytorch.org/tutorials/beginner/blitz/neural_networks_tutorial.html)
+- [Fashion-MNIST Benchmark](https://github.com/zalandoresearch/fashion-mnist#benchmark)
+- [CNN Explainer (Interactive Visualization)](https://poloclub.github.io/cnn-explainer/)
+- [Visualizing Deep Learning Models](https://www.cs.ryerson.ca/~aharley/vis/conv/)

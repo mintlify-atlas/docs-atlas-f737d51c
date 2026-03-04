@@ -1,0 +1,495 @@
+---
+title: 'Data Wrangling & Cleaning'
+description: 'Transform messy data into analysis-ready datasets'
+icon: 'broom'
+---
+
+## Overview
+
+Data wrangling is the process of cleaning, structuring, and enriching raw data into a usable format for analysis. Real-world data is rarely clean—it contains missing values, duplicates, inconsistent formats, and outliers.
+
+<Info>
+  **Why Data Wrangling Matters:**
+  - 60-80% of a data scientist's time is spent preparing data
+  - Poor data quality leads to unreliable insights
+  - Clean data enables accurate modeling and predictions
+</Info>
+
+---
+
+## Complete Data Wrangling Workflow
+
+Here's a comprehensive example from a fintech transaction dataset:
+
+### 1. Load and Explore Data
+
+```python
+import pandas as pd
+import numpy as np
+
+def cargar_y_explorar(ruta_csv: str) -> pd.DataFrame:
+    print("=== 1. LOAD AND EXPLORE DATA ===")
+    df = pd.read_csv(ruta_csv)
+
+    print("\nFirst rows of original dataset:")
+    print(df.head())
+
+    print("\nDataFrame information:")
+    df.info()
+
+    print("\nDescriptive statistics (numeric):")
+    print(df.describe())
+
+    print("\nNull values per column:")
+    print(df.isna().sum())
+
+    duplicados = df.duplicated().sum()
+    print(f"\nDuplicated rows: {duplicados}")
+
+    return df
+```
+
+<Tip>
+  Always start with `.info()`, `.describe()`, and `.head()` to understand your data structure before making changes.
+</Tip>
+
+---
+
+## Handling Missing Data
+
+### Identify Missing Values
+
+```python
+# Check null values by column
+nulos_por_columna = df.isna().sum()
+print("Null values per column:")
+print(nulos_por_columna)
+
+# Calculate percentage of missing data
+porcentaje_nulos = (df.isna().sum() / len(df) * 100).round(2)
+print(f"\nPercentage of missing data:")
+print(porcentaje_nulos)
+```
+
+### Imputation Strategies
+
+<CodeGroup>
+
+```python Numeric Columns
+# Impute with mean
+if "monto" in df.columns:
+    media = df["monto"].mean()
+    df["monto"] = df["monto"].fillna(media)
+    print(f"Imputed mean for 'monto': {media}")
+
+# Impute with median (more robust to outliers)
+if "tasa_interes" in df.columns:
+    mediana = df["tasa_interes"].median()
+    df["tasa_interes"] = df["tasa_interes"].fillna(mediana)
+```
+
+```python Categorical Columns
+# Impute with mode (most frequent value)
+for col in ["tipo_transaccion", "segmento_cliente"]:
+    if col in df.columns:
+        moda = df[col].mode()
+        if not moda.empty:
+            df[col] = df[col].fillna(moda[0])
+            print(f"Imputed mode for '{col}': {moda[0]}")
+```
+
+```python Group-based Imputation
+# Impute salary by department average
+df['Salario'] = df.groupby('Departamento')['Salario'].transform(
+    lambda x: x.fillna(x.mean())
+)
+
+print("Salary imputed by department average")
+```
+
+</CodeGroup>
+
+### When to Drop vs Impute
+
+```python
+# Drop rows with critical missing data (e.g., dates)
+df_limpio = df.dropna(subset=['Fecha_Ingreso'])
+print(f"Rows after dropping null dates: {len(df_limpio)}")
+
+# Drop columns with >50% missing values
+threshold = len(df) * 0.5
+df = df.dropna(thresh=threshold, axis=1)
+```
+
+<Warning>
+  Be cautious when dropping data—you may lose valuable information. Always document your decisions.
+</Warning>
+
+---
+
+## Removing Duplicates
+
+### Identify and Remove Duplicates
+
+```python
+def limpiar_y_transformar(df: pd.DataFrame) -> pd.DataFrame:
+    print("\n=== 2. CLEANING AND TRANSFORMATION ===")
+    df_limpio = df.copy()
+
+    # Check for exact duplicates
+    print(f"\nDuplicates based on Name and Department:")
+    print(df[df.duplicated(subset=['Nombre', 'Departamento'], keep=False)])
+
+    # Remove duplicates
+    antes = len(df_limpio)
+    df_limpio = df_limpio.drop_duplicates()
+    despues = len(df_limpio)
+    
+    print(f"\nRows before removing duplicates: {antes}")
+    print(f"Rows after removing duplicates: {despues}")
+    print(f"Duplicates removed: {antes - despues}")
+
+    return df_limpio
+```
+
+<Tabs>
+  <Tab title="Keep First">
+    ```python
+    # Keep first occurrence
+    df = df.drop_duplicates(keep='first')
+    ```
+  </Tab>
+  
+  <Tab title="Keep Last">
+    ```python
+    # Keep last occurrence
+    df = df.drop_duplicates(keep='last')
+    ```
+  </Tab>
+  
+  <Tab title="Drop All">
+    ```python
+    # Remove all occurrences of duplicates
+    df = df.drop_duplicates(keep=False)
+    ```
+  </Tab>
+</Tabs>
+
+---
+
+## Handling Outliers
+
+### Detect Outliers with IQR Method
+
+```python
+# Identify outliers in Monto_Total using IQR
+q1 = df["Monto_Total"].quantile(0.25)
+q3 = df["Monto_Total"].quantile(0.75)
+iqr = q3 - q1
+
+limite_inferior = q1 - 1.5 * iqr
+limite_superior = q3 + 1.5 * iqr
+
+# Find outliers
+outliers = df[
+    (df["Monto_Total"] < limite_inferior) |
+    (df["Monto_Total"] > limite_superior)
+]
+
+print(f"Number of outliers: {len(outliers)}")
+print(f"Percentage: {len(outliers)/len(df)*100:.2f}%")
+```
+
+### Outlier Treatment Options
+
+<CodeGroup>
+
+```python Clipping
+# Clip values to acceptable range
+df["Monto_Total"] = df["Monto_Total"].clip(
+    lower=limite_inferior,
+    upper=limite_superior
+)
+```
+
+```python Removal
+# Remove outliers entirely
+df_sin_outliers = df[
+    (df["Monto_Total"] >= limite_inferior) &
+    (df["Monto_Total"] <= limite_superior)
+]
+```
+
+```python Capping
+# Cap extreme values at percentiles
+df["Monto_Total"] = df["Monto_Total"].clip(
+    lower=df["Monto_Total"].quantile(0.01),
+    upper=df["Monto_Total"].quantile(0.99)
+)
+```
+
+</CodeGroup>
+
+---
+
+## Data Transformation
+
+### Encoding Categorical Variables
+
+```python
+def codificar_categoricas(df: pd.DataFrame) -> pd.DataFrame:
+    print("\n=== ENCODING CATEGORICAL VARIABLES ===")
+    df_modelo = df.copy()
+
+    # Manual mapping for ordinal categories
+    if "tipo_transaccion" in df_modelo.columns:
+        mapa_tipo = {
+            "pago": 0,
+            "retiro": 1,
+            "transferencia": 2,
+            "deposito": 3
+        }
+        df_modelo["tipo_transaccion_cod"] = df_modelo["tipo_transaccion"].map(mapa_tipo)
+        print("Created 'tipo_transaccion_cod' via manual mapping.")
+
+    # One-hot encoding for nominal categories
+    if "segmento_cliente" in df_modelo.columns:
+        dummies = pd.get_dummies(df_modelo["segmento_cliente"], prefix="segmento")
+        df_modelo = pd.concat([df_modelo.drop(columns=["segmento_cliente"]), dummies], axis=1)
+        print("Created dummy columns for 'segmento_cliente'.")
+
+    return df_modelo
+```
+
+### Creating Derived Features
+
+```python
+# Calculate ticket average
+df["Ticket_Promedio"] = df.apply(
+    lambda row: row["Monto_Total"] / row["Total_Compras"] 
+        if row["Total_Compras"] > 0 else 0,
+    axis=1
+)
+
+# Binning continuous variables
+bins = [0, 1000, 3000, 10000]
+labels = ["Bajo", "Medio", "Alto"]
+df["Segmento_Monto"] = pd.cut(
+    df["Monto_Total"],
+    bins=bins,
+    labels=labels,
+    include_lowest=True
+)
+```
+
+### Normalization and Scaling
+
+<CodeGroup>
+
+```python Min-Max Scaling
+# Min-max normalization (0 to 1)
+min_monto = df["Monto_Total"].min()
+max_monto = df["Monto_Total"].max()
+
+if max_monto > min_monto:
+    df["Monto_Normalizado"] = (
+        df["Monto_Total"] - min_monto
+    ) / (max_monto - min_monto)
+```
+
+```python Z-Score Standardization
+# Standardize to mean=0, std=1
+from scipy import stats
+df["Monto_Zscore"] = stats.zscore(df["Monto_Total"])
+```
+
+```python Robust Scaling
+# Scale using median and IQR
+median = df["Monto_Total"].median()
+iqr = df["Monto_Total"].quantile(0.75) - df["Monto_Total"].quantile(0.25)
+df["Monto_Robust"] = (df["Monto_Total"] - median) / iqr
+```
+
+</CodeGroup>
+
+---
+
+## Restructuring Data
+
+### Renaming and Reordering Columns
+
+```python
+def optimizar_y_estructurar(df: pd.DataFrame) -> pd.DataFrame:
+    print("\n=== 3. OPTIMIZATION AND STRUCTURING ===")
+    df_final = df.copy()
+
+    # Rename columns for clarity
+    df_final = df_final.rename(columns={
+        'id_cliente': 'cliente_id',
+        'monto': 'monto_transaccion'
+    })
+
+    # Reorder columns
+    columnas_deseadas = [
+        "cliente_id", "id_transaccion", "fecha", 
+        "monto_transaccion", "tipo_transaccion", "tasa_interes", "pais"
+    ]
+    otras_columnas = [c for c in df_final.columns if c not in columnas_deseadas]
+    df_final = df_final[columnas_deseadas + otras_columnas]
+
+    return df_final
+```
+
+### Sorting Data
+
+```python
+# Sort by multiple columns
+df = df.sort_values(
+    by=['Ciudad', 'Fecha', 'Monto'],
+    ascending=[True, False, False]
+).reset_index(drop=True)
+```
+
+---
+
+## Data Consolidation
+
+Combine data from multiple sources:
+
+```python
+# Load multiple data sources
+df_csv = pd.read_csv("clientes_desde_numpy.csv")
+df_ecom_csv = pd.read_csv("clientes_ecommerce.csv")
+df_ecom_xlsx = pd.read_excel("clientes_ecommerce.xlsx")
+
+# Ensure matching types
+df_ecom_csv["ID"] = df_ecom_csv["ID"].astype(int)
+df_csv["ID"] = df_csv["ID"].astype(int)
+
+# Merge datasets
+df_unificado = pd.merge(
+    df_csv,
+    df_ecom_csv[["ID", "Nombre", "Ciudad"]],
+    on="ID",
+    how="left"
+)
+
+df_unificado.to_csv("dataset_consolidado.csv", index=False)
+```
+
+---
+
+## Data Validation
+
+### Quality Checks
+
+```python
+# Validate data ranges
+assert df['edad'].between(0, 120).all(), "Invalid age values"
+assert df['monto'].ge(0).all(), "Negative amounts found"
+
+# Check for required fields
+assert df['cliente_id'].notna().all(), "Missing customer IDs"
+
+# Verify data types
+assert df['fecha'].dtype == 'datetime64[ns]', "Date not in datetime format"
+
+print("✓ All validation checks passed")
+```
+
+---
+
+## Export Clean Data
+
+```python
+def exportar(df_final: pd.DataFrame,
+             csv_salida: str = "transacciones_limpias.csv",
+             xlsx_salida: str = "transacciones_limpias.xlsx") -> None:
+    print("\n=== 4. EXPORT ===")
+    
+    # Export to CSV
+    df_final.to_csv(csv_salida, index=False)
+    
+    # Export to Excel
+    df_final.to_excel(xlsx_salida, index=False)
+    
+    print(f"Files exported: {csv_salida} and {xlsx_salida}")
+```
+
+<Check>
+  Always export without the index (`index=False`) unless the index contains meaningful information.
+</Check>
+
+---
+
+## Complete Workflow Example
+
+```python
+def main():
+    ruta_csv = "transacciones_raw.csv"
+
+    # 1. Load and explore
+    df = cargar_y_explorar(ruta_csv)
+
+    print("\n--- BEFORE CLEANING ---")
+    print(df.head())
+
+    # 2. Clean and transform
+    df_limpio = limpiar_y_transformar(df)
+    df_modelo = codificar_categoricas(df_limpio)
+    df_final = optimizar_y_estructurar(df_modelo)
+
+    print("\n--- AFTER TRANSFORMATION ---")
+    print(df_final.head())
+
+    # 3. Export
+    exportar(df_final)
+
+if __name__ == "__main__":
+    main()
+```
+
+---
+
+## Best Practices
+
+<CardGroup cols={2}>
+  <Card title="Document Decisions" icon="file-lines">
+    Keep track of all cleaning and transformation decisions
+  </Card>
+  <Card title="Preserve Raw Data" icon="lock">
+    Never modify original data files directly
+  </Card>
+  <Card title="Use .copy()" icon="clone">
+    Create copies before modifying DataFrames
+  </Card>
+  <Card title="Validate Results" icon="check-double">
+    Always verify data quality after transformations
+  </Card>
+</CardGroup>
+
+<AccordionGroup>
+  <Accordion title="Data Quality Checklist">
+    - [ ] No missing values in critical columns
+    - [ ] No duplicate records
+    - [ ] Data types are correct
+    - [ ] Outliers handled appropriately
+    - [ ] Categorical variables encoded
+    - [ ] Derived features created
+    - [ ] Data normalized/scaled if needed
+    - [ ] Column names are clear and consistent
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="NumPy & Pandas" icon="table-cells" href="/modules/numpy-pandas">
+    Master the fundamentals first
+  </Card>
+  <Card title="Exploratory Analysis" icon="chart-line" href="/modules/exploratory-analysis">
+    Visualize and discover patterns in clean data
+  </Card>
+</CardGroup>

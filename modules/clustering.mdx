@@ -1,0 +1,373 @@
+---
+title: 'Clustering Algorithms'
+description: 'Master clustering techniques including K-Means, DBSCAN, and hierarchical clustering with real implementations'
+icon: 'diagram-project'
+---
+
+## Overview
+
+Clustering algorithms group similar data points together based on their features. This module covers the three main clustering approaches used in the **customer segmentation project** from Module A7.
+
+<Info>
+Clustering is a key unsupervised learning technique used for customer segmentation, market analysis, and pattern discovery.
+</Info>
+
+## K-Means Clustering
+
+### How K-Means Works
+
+K-Means partitions data into **k** clusters by:
+1. Randomly initializing k centroids
+2. Assigning each point to the nearest centroid
+3. Updating centroids as the mean of assigned points
+4. Repeating until convergence
+
+### Implementation from the Project
+
+```python
+from sklearn.cluster import KMeans
+import matplotlib.pyplot as plt
+
+# Elbow method to find optimal k
+inertias = []
+K_range = range(2, 11)
+
+for k in K_range:
+    kmeans = KMeans(n_clusters=k, random_state=42)
+    kmeans.fit(X_scaled)
+    inertias.append(kmeans.inertia_)
+
+# Plot elbow curve
+plt.figure(figsize=(10, 6))
+plt.plot(K_range, inertias, 'bo-')
+plt.xlabel('Number of Clusters (k)')
+plt.ylabel('Inertia')
+plt.title('Elbow Method for Optimal k')
+plt.show()
+```
+
+### Selecting the Right k
+
+<Steps>
+  <Step title="Elbow Method">
+    Plot inertia (within-cluster sum of squares) vs k. Look for the "elbow" where the rate of decrease slows.
+  </Step>
+  
+  <Step title="Silhouette Score">
+    Calculate silhouette coefficient for different k values. Higher scores indicate better-defined clusters.
+  </Step>
+  
+  <Step title="Business Logic">
+    Consider domain knowledge and actionability. Can you create distinct strategies for each segment?
+  </Step>
+</Steps>
+
+### Final K-Means Model
+
+```python
+# Based on elbow method, select k=4
+kmeans_final = KMeans(n_clusters=4, random_state=42, n_init=10)
+cluster_labels = kmeans_final.fit_predict(X_scaled)
+
+# Add cluster labels to dataframe
+df['cluster_kmeans'] = cluster_labels
+
+# Analyze cluster characteristics
+for i in range(4):
+    print(f"\nCluster {i}:")
+    print(df[df['cluster_kmeans'] == i].describe())
+```
+
+<Tip>
+K-Means produces **compact, spherical clusters** and is fast, making it ideal for large datasets. However, you must specify k in advance.
+</Tip>
+
+## DBSCAN (Density-Based Clustering)
+
+### How DBSCAN Works
+
+DBSCAN identifies clusters as **dense regions** separated by sparse areas:
+- **Core points**: Points with at least `min_samples` neighbors within `eps` radius
+- **Border points**: Within `eps` of a core point but not core themselves
+- **Noise points**: Neither core nor border (labeled as -1)
+
+### Advantages over K-Means
+
+<CardGroup cols={2}>
+  <Card title="No k Required" icon="check">
+    Automatically determines number of clusters
+  </Card>
+  
+  <Card title="Arbitrary Shapes" icon="shapes">
+    Can find non-spherical, irregular clusters
+  </Card>
+  
+  <Card title="Noise Detection" icon="filter">
+    Identifies outliers as noise points
+  </Card>
+  
+  <Card title="Density-Based" icon="mountain">
+    Works well with varying cluster densities
+  </Card>
+</CardGroup>
+
+### Implementation
+
+```python
+from sklearn.cluster import DBSCAN
+from sklearn.neighbors import NearestNeighbors
+
+# Find optimal eps using k-distance graph
+neighbors = NearestNeighbors(n_neighbors=5)
+neighbors.fit(X_scaled)
+distances, indices = neighbors.kneighbors(X_scaled)
+distances = np.sort(distances[:, -1], axis=0)
+
+plt.figure(figsize=(10, 6))
+plt.plot(distances)
+plt.xlabel('Points sorted by distance')
+plt.ylabel('5th Nearest Neighbor Distance')
+plt.title('K-distance Graph for eps Selection')
+plt.show()
+
+# Apply DBSCAN
+dbscan = DBSCAN(eps=0.5, min_samples=5)
+dbscan_labels = dbscan.fit_predict(X_scaled)
+
+# Count clusters and noise points
+n_clusters = len(set(dbscan_labels)) - (1 if -1 in dbscan_labels else 0)
+n_noise = list(dbscan_labels).count(-1)
+
+print(f"Number of clusters: {n_clusters}")
+print(f"Number of noise points: {n_noise}")
+```
+
+### Project Results
+
+<Note>
+From the customer segmentation report:
+
+DBSCAN detected **variable numbers of clusters** and identified **atypical customers** as noise points (label -1). These outliers warrant individual analysis to detect opportunities or risks.
+</Note>
+
+```python
+# Analyze noise points (potential outliers)
+outliers = df[dbscan_labels == -1]
+print(f"\nOutliers detected: {len(outliers)}")
+print(outliers.describe())
+
+# Visualize with PCA
+plt.figure(figsize=(12, 6))
+plt.scatter(X_pca[:, 0], X_pca[:, 1], c=dbscan_labels, cmap='viridis', alpha=0.6)
+plt.colorbar(label='Cluster')
+plt.title('DBSCAN Clustering Results (Noise = -1)')
+plt.show()
+```
+
+## Hierarchical Clustering
+
+### Agglomerative Approach
+
+Hierarchical clustering builds a **tree of clusters** (dendrogram) by:
+1. Starting with each point as its own cluster
+2. Iteratively merging the closest cluster pairs
+3. Continuing until all points are in one cluster
+4. Cutting the tree at desired number of clusters
+
+### Implementation
+
+```python
+from sklearn.cluster import AgglomerativeClustering
+from scipy.cluster.hierarchy import dendrogram, linkage
+
+# Create linkage matrix for dendrogram
+linkage_matrix = linkage(X_scaled, method='ward')
+
+# Plot dendrogram
+plt.figure(figsize=(15, 8))
+dendrogram(linkage_matrix, truncate_mode='lastp', p=30)
+plt.xlabel('Cluster Size')
+plt.ylabel('Distance')
+plt.title('Hierarchical Clustering Dendrogram')
+plt.show()
+
+# Apply agglomerative clustering
+hierarchical = AgglomerativeClustering(n_clusters=4, linkage='ward')
+hier_labels = hierarchical.fit_predict(X_scaled)
+
+df['cluster_hierarchical'] = hier_labels
+```
+
+<Tip>
+Hierarchical clustering provides a **multi-level view** of cluster structure and doesn't require specifying k upfront. The dendrogram helps visualize relationships between clusters.
+</Tip>
+
+## Cluster Evaluation
+
+### Silhouette Score
+
+The silhouette coefficient measures how similar a point is to its own cluster compared to other clusters.
+
+```python
+from sklearn.metrics import silhouette_score, silhouette_samples
+import matplotlib.cm as cm
+
+# Calculate silhouette scores for different algorithms
+scores = {
+    'K-Means': silhouette_score(X_scaled, cluster_labels),
+    'DBSCAN': silhouette_score(X_scaled, dbscan_labels[dbscan_labels != -1]),
+    'Hierarchical': silhouette_score(X_scaled, hier_labels)
+}
+
+for method, score in scores.items():
+    print(f"{method} Silhouette Score: {score:.4f}")
+```
+
+<Note>
+Silhouette scores range from -1 to 1:
+- **1**: Perfect separation
+- **0**: Overlapping clusters
+- **-1**: Points assigned to wrong clusters
+</Note>
+
+### Silhouette Plot
+
+```python
+def plot_silhouette(X, labels, n_clusters):
+    fig, ax = plt.subplots(figsize=(10, 6))
+    
+    silhouette_vals = silhouette_samples(X, labels)
+    y_lower = 10
+    
+    for i in range(n_clusters):
+        cluster_silhouette_vals = silhouette_vals[labels == i]
+        cluster_silhouette_vals.sort()
+        
+        size = cluster_silhouette_vals.shape[0]
+        y_upper = y_lower + size
+        
+        color = cm.nipy_spectral(float(i) / n_clusters)
+        ax.fill_betweenx(np.arange(y_lower, y_upper),
+                         0, cluster_silhouette_vals,
+                         facecolor=color, alpha=0.7)
+        
+        y_lower = y_upper + 10
+    
+    ax.set_xlabel('Silhouette Coefficient')
+    ax.set_ylabel('Cluster')
+    ax.axvline(x=silhouette_score(X, labels), color='red', linestyle='--')
+    plt.show()
+
+plot_silhouette(X_scaled, cluster_labels, 4)
+```
+
+## Algorithm Comparison
+
+From the **customer segmentation project report**:
+
+| Algorithm | Effective Clusters | Silhouette Score | Noise Points |
+|-----------|-------------------|------------------|---------------|
+| K-Means | 4 | (value) | 0 |
+| DBSCAN | variable | (value) | > 0 |
+| Hierarchical | 4 | (value) | 0 |
+
+### Key Takeaways
+
+<AccordionGroup>
+  <Accordion title="K-Means: Best for Regular Clusters">
+    K-Means produces **compact, easy-to-interpret clusters**. Ideal for well-separated data with similar cluster sizes. Fast and scalable.
+  </Accordion>
+  
+  <Accordion title="DBSCAN: Best for Outlier Detection">
+    DBSCAN detects **irregular-shaped clusters and outliers**. Excellent for anomaly detection but requires careful parameter tuning.
+  </Accordion>
+  
+  <Accordion title="Hierarchical: Best for Structure Analysis">
+    Hierarchical clustering offers **multi-level hierarchical structure** comparable to K-Means. Useful when cluster relationships matter.
+  </Accordion>
+</AccordionGroup>
+
+## Business Recommendations
+
+Based on the identified segments:
+
+<CardGroup cols={2}>
+  <Card title="High-Income Segments" icon="crown">
+    Offer premium products, exclusive plans, and VIP programs
+  </Card>
+  
+  <Card title="Low-Income Segments" icon="piggy-bank">
+    Provide economic bundles and simple loyalty programs
+  </Card>
+  
+  <Card title="Young/New Customers" icon="seedling">
+    Focus on onboarding strategies and activation campaigns
+  </Card>
+  
+  <Card title="Outliers (DBSCAN)" icon="user-secret">
+    Conduct individual analysis to detect opportunities or risks
+  </Card>
+</CardGroup>
+
+## Complete Workflow
+
+```python
+# Full clustering pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.decomposition import PCA
+from sklearn.cluster import KMeans, DBSCAN, AgglomerativeClustering
+from sklearn.metrics import silhouette_score
+
+# 1. Preprocess data
+scaler = StandardScaler()
+X_scaled = scaler.fit_transform(X)
+
+# 2. Dimensionality reduction
+pca = PCA(n_components=2)
+X_pca = pca.fit_transform(X_scaled)
+
+# 3. Apply clustering algorithms
+kmeans = KMeans(n_clusters=4, random_state=42)
+labels_kmeans = kmeans.fit_predict(X_scaled)
+
+dbscan = DBSCAN(eps=0.5, min_samples=5)
+labels_dbscan = dbscan.fit_predict(X_scaled)
+
+hierarchical = AgglomerativeClustering(n_clusters=4)
+labels_hier = hierarchical.fit_predict(X_scaled)
+
+# 4. Evaluate
+print(f"K-Means Silhouette: {silhouette_score(X_scaled, labels_kmeans):.3f}")
+print(f"DBSCAN Silhouette: {silhouette_score(X_scaled, labels_dbscan):.3f}")
+print(f"Hierarchical Silhouette: {silhouette_score(X_scaled, labels_hier):.3f}")
+
+# 5. Visualize
+fig, axes = plt.subplots(1, 3, figsize=(18, 5))
+for ax, labels, title in zip(axes, 
+                              [labels_kmeans, labels_dbscan, labels_hier],
+                              ['K-Means', 'DBSCAN', 'Hierarchical']):
+    ax.scatter(X_pca[:, 0], X_pca[:, 1], c=labels, cmap='viridis', alpha=0.6)
+    ax.set_title(title)
+    ax.set_xlabel('PC1')
+    ax.set_ylabel('PC2')
+plt.tight_layout()
+plt.show()
+```
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Deep Learning" icon="brain" href="/modules/deep-learning">
+    Move on to neural networks and deep learning fundamentals
+  </Card>
+  
+  <Card title="Unsupervised Learning" icon="chart-scatter" href="/modules/unsupervised-learning">
+    Review unsupervised learning concepts and dimensionality reduction
+  </Card>
+</CardGroup>
+
+## Resources
+
+- [Scikit-learn Clustering Guide](https://scikit-learn.org/stable/modules/clustering.html)
+- [K-Means Visualization](https://www.naftaliharris.com/blog/visualizing-k-means-clustering/)
+- [DBSCAN Parameters Guide](https://scikit-learn.org/stable/auto_examples/cluster/plot_dbscan.html)

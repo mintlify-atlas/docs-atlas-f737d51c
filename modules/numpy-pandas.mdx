@@ -1,0 +1,373 @@
+---
+title: 'NumPy and Pandas Fundamentals'
+description: 'Master the foundational libraries for data manipulation in Python'
+icon: 'table-cells'
+---
+
+## Overview
+
+NumPy and Pandas are the cornerstone libraries for data manipulation and analysis in Python. This module covers array operations, DataFrame manipulation, and efficient data processing techniques.
+
+<CardGroup cols={2}>
+  <Card title="NumPy Arrays" icon="grid-2">
+    Multi-dimensional arrays and vectorized operations
+  </Card>
+  <Card title="Pandas DataFrames" icon="table">
+    Structured data manipulation and analysis
+  </Card>
+  <Card title="Broadcasting" icon="arrows-maximize">
+    Automatic array dimension matching
+  </Card>
+  <Card title="Indexing" icon="magnifying-glass">
+    Advanced selection and filtering techniques
+  </Card>
+</CardGroup>
+
+---
+
+## NumPy: Vectorized Operations
+
+NumPy provides powerful array operations that are orders of magnitude faster than native Python loops.
+
+### Creating Arrays
+
+<CodeGroup>
+
+```python Financial Data Example
+import numpy as np
+
+# Seed for reproducibility
+np.random.seed(42)
+
+# Generate 5x5 matrix of stock prices (5 stocks, 5 days)
+precios = np.random.uniform(10, 100, size=(5, 5))
+# Rows = stocks A1..A5, columns = days D1..D5
+print("Prices:\n", precios)
+```
+
+```python Temperature Data
+import numpy as np
+
+np.random.seed(42)
+
+# Temperature data for 5 cities over 7 days
+X = np.random.randint(8, 40, size=(5, 7))
+print(X)
+```
+
+</CodeGroup>
+
+### Statistical Operations
+
+NumPy enables efficient statistical calculations across arrays without explicit loops:
+
+```python
+# Calculate statistics per stock (across days)
+promedios = precios.mean(axis=1)
+maximos = precios.max(axis=1)
+minimos = precios.min(axis=1)
+
+print("Average per stock:", promedios)
+print("Maximum per stock:", maximos)
+print("Minimum per stock:", minimos)
+```
+
+<Tip>
+  Use `axis=1` to operate across columns (rows), and `axis=0` to operate down rows (columns).
+</Tip>
+
+### Percentage Change Calculation
+
+Vectorized operations make it easy to calculate daily variations:
+
+```python
+# Daily percentage change: (price_t - price_(t-1)) / price_(t-1)
+# Result: 5x4 matrix (loses first day in calculation)
+variacion_pct = (precios[:, 1:] - precios[:, :-1]) / precios[:, :-1]
+
+print("Daily percentage change:\n", variacion_pct)
+```
+
+### Mathematical Functions and Broadcasting
+
+Broadcasting automatically adjusts array dimensions for operations:
+
+```python
+# Natural logarithm of prices
+log_precios = np.log(precios)
+
+# Min-max normalization per stock using broadcasting
+min_accion = precios.min(axis=1).reshape(-1, 1)  # Shape: (5, 1)
+max_accion = precios.max(axis=1).reshape(-1, 1)  # Shape: (5, 1)
+precios_norm = (precios - min_accion) / (max_accion - min_accion)
+
+# Exponential of normalized prices
+exp_precios_norm = np.exp(precios_norm)
+
+print("Log prices:\n", log_precios)
+print("Normalized prices:\n", precios_norm)
+```
+
+<Note>
+  Broadcasting eliminates the need for explicit loops when working with arrays of different shapes.
+</Note>
+
+### Advanced Indexing
+
+Extract specific data points or subsets efficiently:
+
+```python
+# Get specific stock price on specific day
+accion_idx = 1  # Second row (stock 2)
+dia_idx = 3     # Fourth day
+precio_especifico = precios[accion_idx, dia_idx]
+print("Stock 2 price on day 4:", precio_especifico)
+
+# Extract all stocks on day 3
+precios_dia3 = precios[:, 2]
+print("Prices on day 3:", precios_dia3)
+
+# Extract subset: stocks 1, 3, and 5 on days 2 and 5
+acciones_idx = [0, 2, 4]
+dias_idx = [1, 4]
+subconjunto = precios[np.ix_(acciones_idx, dias_idx)]
+print("Subset stocks [1,3,5] days [2,5]:\n", subconjunto)
+```
+
+### Conditional Operations
+
+```python
+# Create mask for temperatures above 30°C
+mask_mayor_30 = X > 30
+valores_mayor_30 = X[mask_mayor_30]
+
+# Replace values below threshold
+X_clean = X.copy()
+X_clean[X_clean < 15] = 15  # Set minimum to 15°C
+```
+
+---
+
+## Pandas: Structured Data Analysis
+
+Pandas builds on NumPy to provide labeled data structures and powerful data analysis tools.
+
+### Creating DataFrames from NumPy
+
+```python
+import pandas as pd
+import numpy as np
+
+# Load NumPy array and convert to DataFrame
+clientes_numpy_cargado = np.load("clientes_numpy.npy")
+
+df_numpy = pd.DataFrame(
+    clientes_numpy_cargado,
+    columns=["ID", "Edad", "Total_Compras", "Monto_Total"]
+)
+
+print(df_numpy.head())
+```
+
+### Loading Data from Multiple Sources
+
+<CodeGroup>
+
+```python CSV Files
+import pandas as pd
+
+# Load CSV with automatic type inference
+df_csv = pd.read_csv('empleados.csv')
+print(f"Shape: {df_csv.shape[0]} rows, {df_csv.shape[1]} columns")
+```
+
+```python Excel Files
+import pandas as pd
+
+# Load Excel file
+df_excel = pd.read_excel('proyectos.xlsx')
+print(df_excel.head())
+```
+
+```python HTML Tables
+import pandas as pd
+from io import StringIO
+
+# Extract tables from HTML
+df_html = pd.read_html(StringIO(html_table))[0]
+print(df_html.head())
+```
+
+</CodeGroup>
+
+### Data Exploration
+
+```python
+import pandas as pd
+
+df = pd.read_csv('empleados.csv')
+
+# Overview of DataFrame
+print(df.info())
+
+# Statistical summary
+print(df.describe())
+
+# Check for missing values
+print(df.isnull().sum())
+
+# Check for duplicates
+print(f"Duplicated rows: {df.duplicated().sum()}")
+```
+
+### Data Type Conversion
+
+```python
+# Convert date column to datetime
+df['Fecha_Ingreso'] = pd.to_datetime(df['Fecha_Ingreso'])
+
+# Ensure numeric type
+df['Salario'] = pd.to_numeric(df['Salario'], errors='coerce')
+
+# Convert to categorical for memory efficiency
+df['Departamento'] = df['Departamento'].astype('category')
+
+print(df.dtypes)
+```
+
+### Filtering and Selection
+
+```python
+# Conditional filtering
+mayores_30 = df_numpy[df_numpy["Edad"] > 30]
+con_mas_de_5_compras = df_numpy[df_numpy["Total_Compras"] > 5]
+
+# Select specific columns
+columnas_relevantes = ['ID', 'Nombre', 'Departamento', 'Salario']
+df_selected = df[columnas_relevantes]
+
+# Boolean indexing with multiple conditions
+df_filtered = df[(df['Edad'] > 25) & (df['Salario'] > 40000)]
+```
+
+### Aggregations and Grouping
+
+```python
+# Group by department and calculate statistics
+resumen_depto = df.groupby('Departamento').agg({
+    'ID': 'count',
+    'Salario': ['mean', 'min', 'max']
+}).round(2)
+
+resumen_depto.columns = ['Cantidad', 'Salario_Promedio', 
+                          'Salario_Mínimo', 'Salario_Máximo']
+print(resumen_depto)
+```
+
+---
+
+## Performance Comparison: NumPy vs Pure Python
+
+<Tabs>
+  <Tab title="With NumPy">
+    ```python
+    # Calculate averages using NumPy (vectorized)
+    promedios = precios.mean(axis=1)
+    print("Averages with NumPy:", promedios)
+    ```
+    
+    **Result:** Fast, concise, optimized at C-level
+  </Tab>
+  
+  <Tab title="Without NumPy">
+    ```python
+    # Calculate averages using pure Python (loops)
+    precios_list = precios.tolist()
+    
+    promedios_sin_numpy = []
+    for fila in precios_list:
+        suma = 0
+        for valor in fila:
+            suma += valor
+        promedio = suma / len(fila)
+        promedios_sin_numpy.append(promedio)
+    
+    print("Averages without NumPy:", promedios_sin_numpy)
+    ```
+    
+    **Result:** Slower, more verbose, error-prone
+  </Tab>
+</Tabs>
+
+<Check>
+  **Key Benefits:**
+  - 10-100x faster execution for large datasets
+  - More readable and maintainable code
+  - Leverages optimized C/Fortran implementations
+  - Reduced memory consumption
+</Check>
+
+---
+
+## Merging Data Sources
+
+Combine multiple DataFrames for integrated analysis:
+
+```python
+# Ensure matching types before merge
+df_ecom_csv["ID"] = df_ecom_csv["ID"].astype(int)
+df_base["ID"] = df_base["ID"].astype(int)
+
+# Left join to unify data sources
+df_unificado = pd.merge(
+    df_base,
+    df_ecom_csv[['ID', 'Nombre', 'Ciudad']],
+    on='ID',
+    how='left'
+)
+
+df_unificado.to_csv('dataset_consolidado.csv', index=False)
+```
+
+---
+
+## Best Practices
+
+<AccordionGroup>
+  <Accordion title="Choose the Right Data Structure">
+    - Use NumPy arrays for homogeneous numerical data
+    - Use Pandas DataFrames for heterogeneous, labeled data
+    - Consider memory efficiency with large datasets
+  </Accordion>
+  
+  <Accordion title="Vectorize Operations">
+    - Avoid explicit Python loops when possible
+    - Use built-in NumPy/Pandas functions
+    - Leverage broadcasting for array operations
+  </Accordion>
+  
+  <Accordion title="Handle Data Types Carefully">
+    - Convert data types appropriately before analysis
+    - Use categorical types for repeated string values
+    - Parse dates as datetime objects
+  </Accordion>
+  
+  <Accordion title="Preserve Original Data">
+    - Use `.copy()` before modifying DataFrames
+    - Keep raw data files unchanged
+    - Document all transformations
+  </Accordion>
+</AccordionGroup>
+
+---
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Data Wrangling" icon="broom" href="/modules/data-wrangling">
+    Learn to clean and transform messy data
+  </Card>
+  <Card title="Exploratory Analysis" icon="chart-line" href="/modules/exploratory-analysis">
+    Discover patterns through visualization
+  </Card>
+</CardGroup>

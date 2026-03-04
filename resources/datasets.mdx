@@ -1,0 +1,525 @@
+---
+title: 'Datasets Reference'
+description: 'Comprehensive guide to all datasets used in the Data Science Bootcamp'
+icon: 'database'
+---
+
+## Overview
+
+The bootcamp uses **real-world and curated datasets** to teach data science concepts. Each dataset is carefully selected to demonstrate specific techniques and business scenarios.
+
+<Info>
+  All datasets are included in the source repository under their respective module folders and the `Bootcamp-main/` directory.
+</Info>
+
+## Project Datasets by Module
+
+These are the primary datasets used in module projects:
+
+<AccordionGroup>
+  <Accordion title="Module A3: clientes_ecommerce (CSV/XLSX)" icon="cart-shopping">
+    **Location:** `002_A3/PROYECTO/`
+    
+    **Format:** CSV and Excel (.xlsx)
+    
+    **Description:**
+    E-commerce customer data used for practicing Pandas data manipulation, cleaning, and transformation techniques.
+    
+    **Use Cases:**
+    - Data loading and exploration
+    - Handling missing values
+    - Data type conversions
+    - Creating derived features
+    - Data aggregation and grouping
+    - Exporting cleaned data
+    
+    **Related Files:**
+    - `clientes_ecommerce.csv` - Raw customer data
+    - `clientes_ecommerce.xlsx` - Excel version
+    - `dataset_consolidado.csv` - Merged dataset
+    - `dataset_limpio.csv` - Cleaned version
+    - `dataset_final.csv/xlsx` - Final processed data
+    - `dataset_wrangle.csv` - Data wrangling practice
+    
+    **Key Fields:**
+    Typically includes customer demographics, transaction history, and behavioral metrics.
+  </Accordion>
+
+  <Accordion title="Module A4: ecommerce_sales_data-2.csv" icon="chart-line">
+    **Location:** `003_A4/PROYECTO/`
+    
+    **Format:** CSV
+    
+    **Description:**
+    E-commerce sales dataset for the "Comercio Ya" project, focused on exploratory data analysis and visualization.
+    
+    **Use Cases:**
+    - Univariate and multivariate analysis
+    - Time series analysis of sales trends
+    - Customer segmentation visualization
+    - Statistical summaries and distributions
+    - Creating business insights dashboards
+    - Correlation analysis
+    
+    **Analysis Techniques:**
+    - Descriptive statistics
+    - Matplotlib and Seaborn visualizations
+    - Box plots, histograms, and scatter plots
+    - Heatmaps for correlation matrices
+    
+    **Project Goal:**
+    Analyze sales patterns and customer behavior to provide actionable business recommendations.
+  </Accordion>
+
+  <Accordion title="Module A6: amazon_sales_dataset.csv" icon="shopping-bag">
+    **Location:** `005_A6/PROYECTO/`
+    
+    **Format:** CSV
+    
+    **Description:**
+    Amazon sales data used for building machine learning models to predict customer spending patterns.
+    
+    **Use Cases:**
+    - Data preprocessing and feature engineering
+    - Training supervised learning models
+    - Regression analysis for spend prediction
+    - Model evaluation and comparison
+    - Cross-validation techniques
+    - Hyperparameter tuning
+    
+    **ML Techniques Applied:**
+    - Linear regression
+    - K-Nearest Neighbors
+    - Decision trees
+    - Random forests
+    - Gradient boosting
+    
+    **Related Dataset:**
+    - `Actual_transactions_from_UK_retailer.csv` - Alternative retail dataset
+    - `clientes_preprocesados.csv` - Preprocessed customer data
+    
+    **Project:** `proyecto_modulo6_gasto_clientes_completo.ipynb`
+  </Accordion>
+
+  <Accordion title="Module A7: Train.csv & Test.csv" icon="split">
+    **Location:** `006_A7/PROYECTO/`
+    
+    **Format:** CSV (split into training and testing sets)
+    
+    **Description:**
+    Pre-split dataset for advanced machine learning techniques, focusing on proper model validation.
+    
+    **Use Cases:**
+    - Unsupervised learning (clustering, PCA)
+    - Advanced feature engineering
+    - Model pipeline development
+    - Handling train/test split properly
+    - Avoiding data leakage
+    - Ensemble methods
+    
+    **Key Concepts:**
+    - The data is already split to simulate real-world ML workflows
+    - Training set used for model development
+    - Test set reserved for final evaluation
+    - Proper validation strategies
+    
+    **Analysis Focus:**
+    Advanced ML techniques including dimensionality reduction and unsupervised learning.
+  </Accordion>
+
+  <Accordion title="Module A8: Fashion MNIST" icon="shirt">
+    **Location:** Loaded programmatically via TensorFlow/PyTorch
+    
+    **Format:** Built-in dataset (28x28 grayscale images)
+    
+    **Description:**
+    Fashion MNIST is a dataset of 70,000 fashion product images (60,000 training + 10,000 testing) across 10 categories.
+    
+    **Categories:**
+    1. T-shirt/top
+    2. Trouser
+    3. Pullover
+    4. Dress
+    5. Coat
+    6. Sandal
+    7. Shirt
+    8. Sneaker
+    9. Bag
+    10. Ankle boot
+    
+    **Use Cases:**
+    - Building neural networks from scratch
+    - Image classification
+    - Comparing Keras/TensorFlow vs PyTorch implementations
+    - Understanding CNNs (Convolutional Neural Networks)
+    - Training, validation, and testing workflows
+    - Model optimization and regularization
+    
+    **Loading the Data:**
+    ```python
+    # Keras/TensorFlow
+    from tensorflow.keras.datasets import fashion_mnist
+    (X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
+    
+    # PyTorch
+    from torchvision import datasets
+    train_data = datasets.FashionMNIST(root='data', train=True, download=True)
+    test_data = datasets.FashionMNIST(root='data', train=False, download=True)
+    ```
+    
+    **Projects:**
+    - `proyecto_mod8_keras.ipynb` - Keras/TensorFlow implementation
+    - `proyecto_mod8_pytorch.ipynb` - PyTorch implementation
+  </Accordion>
+</AccordionGroup>
+
+## Supporting Datasets
+
+Additional datasets used throughout the bootcamp:
+
+### Module A3: Pandas Practice Datasets
+
+<CardGroup cols={2}>
+  <Card title="Titanic Dataset" icon="ship">
+    **Files:** Multiple locations in `Bootcamp-main/Modulo3/`
+    
+    Classic dataset for learning data cleaning, exploration, and basic ML.
+    
+    **Skills:** Handling missing values, categorical encoding, survival analysis
+  </Card>
+  
+  <Card title="Employee Datasets" icon="users">
+    **Files:** `002_A3/L2_analisis_caso/empleados*.csv/xlsx`
+    
+    HR data for practicing merge operations and data cleaning.
+    
+    **Skills:** Joining tables, data consolidation, analysis
+  </Card>
+  
+  <Card title="Transaction Data" icon="money-bill">
+    **Files:** `002_A3/L5_analisis_caso/transacciones_*.csv`
+    
+    Financial transaction data for time series and aggregation practice.
+    
+    **Skills:** Date/time handling, aggregations, transformations
+  </Card>
+  
+  <Card title="Financial Data" icon="chart-line">
+    **Files:** `Bootcamp-main/Modulo3/Leccion3/AAPL_historico.csv`
+    
+    Apple stock historical data for time series analysis.
+    
+    **Skills:** Working with financial data, time series operations
+  </Card>
+</CardGroup>
+
+### Module A4: Visualization Datasets
+
+<CardGroup cols={2}>
+  <Card title="House EDA" icon="house">
+    **File:** `Bootcamp-main/Modulo4/Leccion4/data/house_eda.csv`
+    
+    Housing data for exploratory analysis and visualization.
+  </Card>
+  
+  <Card title="Sales Data" icon="cart-shopping">
+    **File:** `Bootcamp-main/Modulo4/Leccion1/data/ventas_simuladas.csv`
+    
+    Simulated sales data for visualization practice.
+  </Card>
+  
+  <Card title="Performance Reports" icon="file-chart-column">
+    **File:** `Bootcamp-main/Modulo3/Leccion6/data/reporte_rendimiento.csv`
+    
+    Department performance data for creating reports.
+  </Card>
+  
+  <Card title="E-commerce" icon="shopping-cart">
+    **File:** `Bootcamp-main/Modulo4/Leccion4/data/Ecommerce.csv`
+    
+    E-commerce data for multivariate analysis.
+  </Card>
+</CardGroup>
+
+### Module A5: Statistical Datasets
+
+<CardGroup cols={2}>
+  <Card title="Distributions Examples" icon="chart-simple">
+    **Files:** `004_A5/EJERCICIOS/Leccion3/distributions_examples.csv`
+    
+    Data demonstrating various probability distributions.
+  </Card>
+  
+  <Card title="Lightbulb Exercise" icon="lightbulb">
+    **File:** `004_A5/EJERCICIOS/Ejercicio_bombillas.xlsx`
+    
+    Quality control data for hypothesis testing practice.
+  </Card>
+</CardGroup>
+
+### Module A6: Machine Learning Datasets
+
+<CardGroup cols={2}>
+  <Card title="Insurance" icon="shield">
+    **File:** `Bootcamp-main/Modulo6/Leccion4/insurance.csv`
+    
+    Medical insurance cost prediction for regression practice.
+  </Card>
+  
+  <Card title="Auto MPG" icon="car">
+    **Files:** `Bootcamp-main/Modulo6/Leccion4/auto-mpg.csv`, `autos.csv`
+    
+    Car fuel efficiency for regression modeling.
+  </Card>
+  
+  <Card title="Bank Marketing" icon="building-columns">
+    **File:** `Bootcamp-main/Modulo6/Leccion5/bank-full.csv`
+    
+    Bank marketing campaign data for classification.
+  </Card>
+  
+  <Card title="Breast Cancer" icon="ribbon">
+    **File:** `Bootcamp-main/Modulo6/Leccion5/Breast_Cancer.csv`
+    
+    Medical diagnosis data for binary classification.
+  </Card>
+  
+  <Card title="Wine Quality" icon="wine-glass">
+    **File:** `Bootcamp-main/Modulo6/Leccion5/WineQT.csv`
+    
+    Wine quality ratings for multiclass classification.
+  </Card>
+  
+  <Card title="Telco Churn" icon="phone">
+    **File:** `Bootcamp-main/Modulo6/Leccion7/WA_Fn-UseC_-Telco-Customer-Churn.csv`
+    
+    Customer churn prediction for decision trees and ensemble methods.
+  </Card>
+  
+  <Card title="Sports Classification" icon="futbol">
+    **Files:** `Bootcamp-main/Modulo6/Leccion5/deportes*.csv`
+    
+    Sports categorization for KNN classification practice.
+  </Card>
+  
+  <Card title="Bank Clients" icon="user-tie">
+    **File:** `Bootcamp-main/Modulo6/Leccion5/clientes_banco.csv`
+    
+    Customer segmentation and classification.
+  </Card>
+</CardGroup>
+
+## Dataset Categories
+
+### By Domain
+
+<Tabs>
+  <Tab title="E-commerce & Retail">
+    - clientes_ecommerce (A3)
+    - ecommerce_sales_data-2 (A4)
+    - amazon_sales_dataset (A6)
+    - UK retailer transactions (A6)
+    - Various e-commerce files (Modulo3/4)
+    
+    **Common Fields:** Customer ID, transaction date, product, price, quantity, category
+  </Tab>
+  
+  <Tab title="Financial">
+    - Transaction data (A3)
+    - Stock market data (AAPL)
+    - Bank marketing (Modulo6)
+    - Insurance data (Modulo6)
+    
+    **Common Fields:** Date/time, amount, account info, transaction type
+  </Tab>
+  
+  <Tab title="Healthcare">
+    - Breast Cancer classification
+    - Insurance cost prediction
+    
+    **Common Fields:** Patient demographics, diagnosis, costs, outcomes
+  </Tab>
+  
+  <Tab title="Images">
+    - Fashion MNIST (A8)
+    
+    **Format:** 28x28 grayscale images, 10 classes
+  </Tab>
+  
+  <Tab title="HR & Business">
+    - Employee datasets (A3)
+    - Performance reports (A3)
+    - Department data
+    
+    **Common Fields:** Employee ID, salary, department, performance metrics
+  </Tab>
+</Tabs>
+
+## Working with Datasets
+
+### Loading Data
+
+<CodeGroup>
+```python CSV Files
+import pandas as pd
+
+# Load CSV
+df = pd.read_csv('path/to/file.csv')
+
+# Load with specific encoding
+df = pd.read_csv('file.csv', encoding='utf-8')
+
+# Load with different delimiter
+df = pd.read_csv('file.csv', sep=';')
+
+# Load large files in chunks
+chunks = pd.read_csv('large_file.csv', chunksize=10000)
+for chunk in chunks:
+    process(chunk)
+```
+
+```python Excel Files
+import pandas as pd
+
+# Load Excel
+df = pd.read_excel('path/to/file.xlsx')
+
+# Load specific sheet
+df = pd.read_excel('file.xlsx', sheet_name='Sheet1')
+
+# Load multiple sheets
+sheets = pd.read_excel('file.xlsx', sheet_name=None)
+```
+
+```python Image Data
+# Keras/TensorFlow
+from tensorflow.keras.datasets import fashion_mnist
+(X_train, y_train), (X_test, y_test) = fashion_mnist.load_data()
+
+# Normalize
+X_train = X_train / 255.0
+X_test = X_test / 255.0
+```
+
+```python Data Exploration
+import pandas as pd
+
+df = pd.read_csv('dataset.csv')
+
+# First look
+print(df.head())
+print(df.info())
+print(df.describe())
+
+# Check for missing values
+print(df.isnull().sum())
+
+# Check data types
+print(df.dtypes)
+```
+</CodeGroup>
+
+### Data Quality Tips
+
+<Steps>
+  <Step title="Inspect First">
+    Always use `df.head()`, `df.info()`, and `df.describe()` before starting analysis.
+  </Step>
+  
+  <Step title="Handle Missing Values">
+    Check for nulls with `df.isnull().sum()` and decide on strategy (drop, fill, interpolate).
+  </Step>
+  
+  <Step title="Verify Data Types">
+    Ensure columns have correct types (dates as datetime, numbers as numeric).
+  </Step>
+  
+  <Step title="Check for Outliers">
+    Use box plots and statistical methods to identify anomalies.
+  </Step>
+  
+  <Step title="Document Changes">
+    Keep track of data transformations for reproducibility.
+  </Step>
+</Steps>
+
+## Dataset Best Practices
+
+<Warning>
+  **Never Modify Original Files**: Always work on copies of datasets. Keep raw data in a separate `data/raw/` folder.
+</Warning>
+
+<Tip>
+  **Use Version Control**: Track changes to processed datasets. Name files descriptively: `dataset_cleaned.csv`, `dataset_features_v2.csv`.
+</Tip>
+
+<Info>
+  **Document Your Data**: Create a data dictionary explaining each column, its type, and meaning. This is essential for projects.
+</Info>
+
+### Recommended Folder Structure
+
+```
+project/
+├── data/
+│   ├── raw/              # Original, immutable data
+│   ├── interim/          # Intermediate transformations
+│   ├── processed/        # Final, model-ready data
+│   └── external/         # Third-party data
+├── notebooks/            # Jupyter notebooks
+├── src/                  # Source code
+└── reports/              # Generated analysis
+```
+
+## Data Sources & Ethics
+
+### Dataset Origins
+
+<CardGroup cols={2}>
+  <Card title="Curated Educational" icon="graduation-cap">
+    Most datasets are educational versions created or modified for learning purposes.
+  </Card>
+  
+  <Card title="Public Datasets" icon="globe">
+    Some datasets (Titanic, Fashion MNIST) are well-known public datasets from Kaggle and ML libraries.
+  </Card>
+  
+  <Card title="Simulated Data" icon="flask">
+    Some datasets (e.g., `ventas_simuladas.csv`) are synthetically generated to teach specific concepts.
+  </Card>
+  
+  <Card title="Anonymized Real Data" icon="user-shield">
+    Where real data is used, it has been anonymized and aggregated for privacy.
+  </Card>
+</CardGroup>
+
+### Data Ethics
+
+<Warning>
+  When working with data in real-world projects:
+  - Always respect privacy and confidentiality
+  - Check data licenses and usage terms
+  - Be aware of bias in datasets
+  - Consider ethical implications of your analyses
+  - Follow data protection regulations (GDPR, etc.)
+</Warning>
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Jupyter Notebooks" icon="book" href="/resources/notebooks">
+    See which notebooks use these datasets
+  </Card>
+  
+  <Card title="Tools & Libraries" icon="wrench" href="/resources/tools">
+    Learn how to work with these datasets
+  </Card>
+  
+  <Card title="Glossary" icon="book-open" href="/resources/glossary">
+    Understand data science terminology
+  </Card>
+  
+  <Card title="Module Projects" icon="rocket" href="/projects">
+    Start analyzing datasets in projects
+  </Card>
+</CardGroup>

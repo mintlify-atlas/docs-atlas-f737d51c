@@ -1,0 +1,321 @@
+---
+title: Contact Management System
+description: Python console application for managing contacts with OOP and JSON persistence (Module A2)
+---
+
+## Overview
+
+The Contact Management System is a console-based application built with Python that allows users to register, search, edit, and delete contacts. It demonstrates object-oriented programming principles, Python data structures, and JSON persistence.
+
+**Key Features:**
+- Contact registration with validation
+- Flexible search (by name or phone)
+- Contact editing and deletion
+- JSON persistence
+- Console-based menu interface
+- Comprehensive unit testing (22/22 tests passing)
+
+**Technologies:**
+- Python 3.7+
+- Standard libraries: `json`, `os`, `unittest`
+- No external dependencies
+
+## Project Structure
+
+```
+Sistema-Gestion-Contactos/
+├── main.py                 # Entry point - CLI menu interface
+├── contact.py              # Contact class (data model)
+├── contact_manager.py      # ContactManager class (business logic)
+├── test_contact_system.py  # Unit tests
+├── contactos.json          # JSON data storage (auto-generated)
+└── README.md
+```
+
+## Architecture
+
+### Contact Class
+
+The `Contact` class represents a single contact with encapsulation using properties:
+
+```python
+class Contact:
+    """
+    Represents a contact with name, phone, email, and address.
+    
+    Attributes:
+        nombre (str): Contact name
+        telefono (str): Contact phone
+        email (str): Contact email
+        direccion (str): Contact address
+    """
+    
+    def __init__(self, nombre: str, telefono: str, email: str, direccion: str):
+        self._nombre = nombre
+        self._telefono = telefono
+        self._email = email
+        self._direccion = direccion
+    
+    @property
+    def nombre(self) -> str:
+        return self._nombre
+    
+    @nombre.setter
+    def nombre(self, valor: str):
+        if not valor.strip():
+            raise ValueError("El nombre no puede estar vacío")
+        self._nombre = valor
+```
+
+Key features:
+- **Encapsulation**: Private attributes with property decorators
+- **Validation**: Setters validate non-empty values
+- **Serialization**: `to_dict()` and `from_dict()` methods for JSON conversion
+- **String representation**: `__str__()` and `__repr__()` methods
+
+### ContactManager Class
+
+The `ContactManager` class handles all contact operations and persistence:
+
+```python
+class ContactManager:
+    """
+    Manages contacts with persistence in JSON.
+    
+    Responsibilities:
+    - Add, edit, and delete contacts
+    - Search contacts by name or phone
+    - Data persistence in JSON
+    - Contact list management
+    """
+    
+    def __init__(self, archivo_datos: str = "contactos.json"):
+        self._archivo_datos = archivo_datos
+        self._contactos: list[Contact] = []
+        self._cargar_contactos()
+    
+    def agregar_contacto(self, nombre: str, telefono: str, 
+                        email: str, direccion: str):
+        """Add a new contact"""
+        if self.buscar_por_telefono(telefono):
+            raise ValueError(f"Contact with phone '{telefono}' already exists")
+        
+        nuevo_contacto = Contact(nombre, telefono, email, direccion)
+        self._contactos.append(nuevo_contacto)
+        self._guardar_contactos()
+```
+
+**Key operations:**
+- `agregar_contacto()`: Add new contact with duplicate phone validation
+- `editar_contacto()`: Update contact information
+- `eliminar_contacto()`: Delete contact with confirmation
+- `buscar_por_nombre()`: Partial, case-insensitive name search
+- `buscar_por_telefono()`: Exact phone search
+- `_cargar_contactos()`: Load contacts from JSON on startup
+- `_guardar_contactos()`: Save contacts to JSON after modifications
+
+## Usage
+
+### Installation
+
+```bash
+# Clone or download the project
+git clone <repository-url>
+cd Sistema-Gestion-Contactos
+
+# Run the application (no dependencies needed)
+python main.py
+```
+
+### Menu Interface
+
+```
+==================================================
+SISTEMA DE GESTIÓN DE CONTACTOS
+==================================================
+1. Agregar nuevo contacto
+2. Ver todos los contactos
+3. Buscar contacto por nombre
+4. Buscar contacto por teléfono
+5. Editar contacto
+6. Eliminar contacto
+7. Salir
+==================================================
+```
+
+### Example Usage
+
+**Adding a contact:**
+
+```
+--- AGREGAR NUEVO CONTACTO ---
+Nombre: Juan Pérez
+Teléfono: +56912345678
+Correo: juan.perez@example.com
+Dirección: Av. Principal 123
+✅ Contacto agregado correctamente
+```
+
+**Searching by name:**
+
+```
+Ingrese el nombre a buscar: juan
+✅ Se encontraron 1 resultado(s):
+
+Nombre: Juan Pérez
+Teléfono: +56912345678
+Email: juan.perez@example.com
+Dirección: Av. Principal 123
+```
+
+**Editing a contact:**
+
+```
+Ingrese el teléfono del contacto a editar: +56912345678
+Contacto actual:
+Nombre: Juan Pérez
+Teléfono: +56912345678
+Email: juan.perez@example.com
+Dirección: Av. Principal 123
+
+Dejar en blanco para mantener el valor actual
+Nuevo nombre (o Enter para mantener): Juan Carlos Pérez
+Nuevo correo (o Enter para mantener): 
+Nueva dirección (o Enter para mantener): Av. Nueva 456
+✅ Contacto editado correctamente
+```
+
+## Testing
+
+The project includes comprehensive unit tests covering:
+
+- Contact creation and validation
+- Property setters and getters
+- Contact serialization (to_dict/from_dict)
+- ContactManager operations (add, edit, delete, search)
+- JSON persistence
+- Error handling and edge cases
+
+**Running tests:**
+
+```bash
+python test_contact_system.py
+```
+
+**Test results:**
+```
+✅ 22/22 tests passing
+```
+
+## Data Persistence
+
+Contacts are stored in JSON format:
+
+```json
+[
+  {
+    "nombre": "Juan Pérez",
+    "telefono": "+56912345678",
+    "email": "juan.perez@example.com",
+    "direccion": "Av. Principal 123"
+  },
+  {
+    "nombre": "María González",
+    "telefono": "+56987654321",
+    "email": "maria.gonzalez@example.com",
+    "direccion": "Calle Secundaria 456"
+  }
+]
+```
+
+**Persistence features:**
+- Automatic loading on startup
+- Automatic saving after each modification
+- UTF-8 encoding for special characters
+- Pretty-printed JSON (indent=2)
+- Error handling for file operations
+
+## Key Features
+
+### 1. Contact Registration
+- Validates all fields are non-empty
+- Prevents duplicate phone numbers
+- Automatic data persistence
+
+### 2. Flexible Search
+- **By name**: Partial match, case-insensitive
+- **By phone**: Exact match
+- Returns single contact or list of results
+
+### 3. Contact Editing
+- Edit name, email, or address
+- Phone number is immutable (used as unique key)
+- Option to keep existing values
+
+### 4. Safe Deletion
+- Confirmation prompt before deletion
+- Clear feedback to user
+
+### 5. Data Validation
+- Empty field validation
+- Duplicate phone number prevention
+- Property-based encapsulation
+
+## Best Practices Demonstrated
+
+1. **Object-Oriented Design**
+   - Clear separation of concerns (Contact vs ContactManager)
+   - Encapsulation with private attributes and properties
+   - Single Responsibility Principle
+
+2. **Data Validation**
+   - Input validation at multiple levels
+   - Meaningful error messages
+   - Type hints for better code clarity
+
+3. **Persistence**
+   - Automatic save/load operations
+   - JSON serialization with custom methods
+   - Error handling for file operations
+
+4. **Testing**
+   - Comprehensive unit test coverage
+   - Test isolation with temporary test files
+   - Both positive and negative test cases
+
+5. **User Experience**
+   - Clear menu interface
+   - Helpful prompts and feedback
+   - Confirmation for destructive operations
+
+## Technical Highlights
+
+**File:** `~/workspace/source/001_A2/PROYECTO/contact.py:15-23`
+```python
+@property
+def nombre(self) -> str:
+    return self._nombre
+
+@nombre.setter
+def nombre(self, valor: str):
+    if not valor.strip():
+        raise ValueError("El nombre no puede estar vacío")
+    self._nombre = valor
+```
+
+**File:** `~/workspace/source/001_A2/PROYECTO/contact_manager.py:47-54`
+```python
+def agregar_contacto(self, nombre: str, telefono: str, 
+                     email: str, direccion: str):
+    """Agrega un nuevo contacto"""
+    if self.buscar_por_telefono(telefono):
+        raise ValueError(f"Ya existe un contacto con el teléfono '{telefono}'")
+    
+    nuevo_contacto = Contact(nombre, telefono, email, direccion)
+    self._contactos.append(nuevo_contacto)
+    self._guardar_contactos()
+```
+
+## Conclusion
+
+This Contact Management System demonstrates fundamental Python programming concepts including OOP, data persistence, testing, and user interface design. It provides a solid foundation for building more complex applications with databases and web interfaces.

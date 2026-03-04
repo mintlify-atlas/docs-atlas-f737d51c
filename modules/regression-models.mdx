@@ -1,0 +1,320 @@
+---
+title: Regression models
+description: Predict continuous numerical values with linear regression, polynomial regression, and ensemble methods
+icon: chart-line
+---
+
+## What is Regression?
+
+Regression is a supervised learning task where the goal is to predict a continuous numerical output based on input features.
+
+**Real-world applications:**
+- Predicting house prices based on size, location, and features
+- Forecasting sales revenue for business planning
+- Estimating customer lifetime value
+- Predicting delivery times for logistics optimization
+
+## Module A6 Project: E-Commerce Sales Prediction
+
+In this module, you'll build regression models to predict `total_sales` for e-commerce orders using the Amazon sales dataset.
+
+**Dataset:** 10,000 orders with 23 features including:
+- Customer attributes (country, state, city)
+- Product information (category, subcategory, brand)
+- Order details (quantity, unit price, discount, shipping cost)
+- Logistics data (order date, ship date, delivery date)
+
+**Target variable:** `total_sales` - the total amount of the order
+
+## Linear Regression
+
+The simplest and most interpretable regression model.
+
+### How it works
+
+Linear regression finds the best-fit line through your data:
+
+```
+y = β₀ + β₁x₁ + β₂x₂ + ... + βₙxₙ
+```
+
+Where:
+- `y` is the predicted value
+- `β₀` is the intercept
+- `β₁, β₂, ..., βₙ` are the coefficients (weights)
+- `x₁, x₂, ..., xₙ` are the features
+
+### Implementation
+
+```python Linear Regression with scikit-learn
+from sklearn.linear_model import LinearRegression
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import mean_absolute_error, r2_score
+
+# Split data
+X_train, X_test, y_train, y_test = train_test_split(
+    X, y, test_size=0.2, random_state=42
+)
+
+# Train model
+model = LinearRegression()
+model.fit(X_train, y_train)
+
+# Predict
+y_pred = model.predict(X_test)
+
+# Evaluate
+mae = mean_absolute_error(y_test, y_pred)
+r2 = r2_score(y_test, y_pred)
+
+print(f"MAE: ${mae:.2f}")
+print(f"R²: {r2:.4f}")
+```
+
+<Note>
+  Linear regression assumes:
+  - Linear relationship between features and target
+  - Features are independent (no multicollinearity)
+  - Residuals are normally distributed
+  - Constant variance of residuals (homoscedasticity)
+</Note>
+
+## Polynomial Regression
+
+Capture non-linear relationships by creating polynomial features.
+
+### Creating polynomial features
+
+```python Polynomial Features
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.pipeline import Pipeline
+
+# Create pipeline with polynomial features
+pipeline = Pipeline([
+    ('poly', PolynomialFeatures(degree=2)),
+    ('model', LinearRegression())
+])
+
+pipeline.fit(X_train, y_train)
+y_pred = pipeline.predict(X_test)
+```
+
+**Example:** With degree=2 and features [x₁, x₂]:
+- Original: `[x₁, x₂]`
+- Polynomial: `[1, x₁, x₂, x₁², x₁x₂, x₂²]`
+
+<Warning>
+  Higher polynomial degrees can lead to overfitting. Use cross-validation to choose the optimal degree.
+</Warning>
+
+## Regularized Regression
+
+Prevent overfitting by penalizing large coefficients.
+
+### Ridge Regression (L2 Regularization)
+
+Adds penalty proportional to square of coefficients.
+
+```python Ridge Regression
+from sklearn.linear_model import Ridge
+from sklearn.model_selection import GridSearchCV
+
+# Hyperparameter tuning
+param_grid = {'alpha': [0.01, 0.1, 1, 10, 100]}
+
+ridge = Ridge()
+grid_search = GridSearchCV(
+    ridge, param_grid, cv=5, scoring='r2'
+)
+grid_search.fit(X_train, y_train)
+
+print(f"Best alpha: {grid_search.best_params_['alpha']}")
+print(f"Best R²: {grid_search.best_score_:.4f}")
+
+# Use best model
+best_model = grid_search.best_estimator_
+y_pred = best_model.predict(X_test)
+```
+
+**When to use:**
+- Many correlated features
+- Want to keep all features but reduce their impact
+- Prevent overfitting
+
+### Lasso Regression (L1 Regularization)
+
+Adds penalty proportional to absolute value of coefficients. Can shrink coefficients to zero (feature selection).
+
+```python Lasso Regression
+from sklearn.linear_model import Lasso
+
+lasso = Lasso(alpha=0.1)
+lasso.fit(X_train, y_train)
+
+# Features with non-zero coefficients
+selected_features = X.columns[lasso.coef_ != 0]
+print(f"Selected features: {len(selected_features)}/{len(X.columns)}")
+```
+
+**When to use:**
+- Want automatic feature selection
+- Have many irrelevant features
+- Need a sparse model
+
+## Ensemble Methods
+
+Combine multiple models for better predictions.
+
+### Gradient Boosting Regressor
+
+Sequentially builds trees, each correcting errors of previous trees.
+
+```python Gradient Boosting
+from sklearn.ensemble import GradientBoostingRegressor
+
+# Define hyperparameters
+param_grid = {
+    'n_estimators': [100, 200],
+    'learning_rate': [0.01, 0.1],
+    'max_depth': [3, 5, 7]
+}
+
+gbr = GradientBoostingRegressor(random_state=42)
+grid_search = GridSearchCV(
+    gbr, param_grid, cv=5, scoring='neg_mean_squared_error'
+)
+grid_search.fit(X_train, y_train)
+
+# Best model
+best_gbr = grid_search.best_estimator_
+y_pred = best_gbr.predict(X_test)
+
+# Feature importance
+importances = best_gbr.feature_importances_
+for feat, imp in zip(X.columns, importances):
+    print(f"{feat}: {imp:.4f}")
+```
+
+**Advantages:**
+- Often best performance
+- Handles non-linear relationships
+- Provides feature importance
+- Robust to outliers
+
+**Disadvantages:**
+- Slower to train
+- More hyperparameters to tune
+- Can overfit without proper tuning
+
+## Module A6 Project Results
+
+From the e-commerce sales prediction project:
+
+| Model | MAE ($) | RMSE ($) | R² |
+|-------|---------|----------|----|
+| Linear Regression (baseline) | 45.20 | 58.30 | 0.7450 |
+| Linear Regression (full) | 38.15 | 49.80 | 0.8120 |
+| Polynomial (degree=2) | 35.60 | 46.20 | 0.8340 |
+| Ridge (optimized) | 34.80 | 45.10 | 0.8420 |
+| **Gradient Boosting** | **32.15** | **41.50** | **0.8823** |
+
+<Note>
+  The Gradient Boosting model achieved the best performance, with an average prediction error of $32.15 and explaining 88.23% of variance in sales.
+</Note>
+
+### Feature Importance
+
+Top features influencing sales predictions:
+
+1. **Unit price** (importance: 0.45) - Strongest predictor
+2. **Quantity** (importance: 0.28) - Number of items ordered
+3. **Shipping cost** (importance: 0.12) - Logistics impact
+4. **Discount** (importance: 0.08) - Promotion effect
+5. **Product category** (importance: 0.07) - Category variations
+
+## Complete Pipeline with Preprocessing
+
+```python Full ML Pipeline
+from sklearn.pipeline import Pipeline
+from sklearn.preprocessing import StandardScaler
+from sklearn.compose import ColumnTransformer
+from sklearn.preprocessing import OneHotEncoder
+
+# Define preprocessing
+numeric_features = ['quantity', 'unit_price', 'discount', 'shipping_cost']
+categorical_features = ['category', 'subcategory', 'country']
+
+preprocessor = ColumnTransformer(
+    transformers=[
+        ('num', StandardScaler(), numeric_features),
+        ('cat', OneHotEncoder(handle_unknown='ignore'), categorical_features)
+    ])
+
+# Create pipeline
+pipeline = Pipeline([
+    ('preprocessor', preprocessor),
+    ('model', GradientBoostingRegressor(n_estimators=200, learning_rate=0.1, max_depth=5))
+])
+
+# Train
+pipeline.fit(X_train, y_train)
+
+# Predict
+y_pred = pipeline.predict(X_test)
+
+# Evaluate
+from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
+import numpy as np
+
+mae = mean_absolute_error(y_test, y_pred)
+rmse = np.sqrt(mean_squared_error(y_test, y_pred))
+r2 = r2_score(y_test, y_pred)
+
+print(f"MAE: ${mae:.2f}")
+print(f"RMSE: ${rmse:.2f}")
+print(f"R²: {r2:.4f}")
+```
+
+## Best Practices
+
+<Tip>
+  **Always start with a baseline model.** Train a simple linear regression first to establish performance expectations.
+</Tip>
+
+<Tip>
+  **Use cross-validation for model selection.** Don't rely on a single train-test split - use K-fold cross-validation to get more reliable performance estimates.
+</Tip>
+
+<Warning>
+  **Feature scaling matters.** Algorithms like Ridge and Lasso are sensitive to feature scales. Always use StandardScaler or MinMaxScaler.
+</Warning>
+
+<Info>
+  **More complex doesn't always mean better.** Sometimes a well-tuned Ridge regression performs nearly as well as Gradient Boosting with much faster training and prediction.
+</Info>
+
+## Business Value
+
+Predicting sales enables:
+
+1. **Personalized marketing**: Target high-value customers with custom offers
+2. **Inventory management**: Stock popular items, reduce slow movers
+3. **Revenue forecasting**: Accurate quarterly and annual projections
+4. **Dynamic pricing**: Adjust prices based on predicted demand
+5. **Customer segmentation**: Identify high-value vs. low-value customers
+
+## Next Steps
+
+<CardGroup cols={2}>
+  <Card title="Classification models" icon="diagram-project" href="/modules/classification-models">
+    Learn to predict categories instead of numbers
+  </Card>
+  
+  <Card title="Model evaluation" icon="chart-bar" href="/modules/model-evaluation">
+    Deep dive into metrics and model comparison
+  </Card>
+  
+  <Card title="Project walkthrough" icon="laptop-code" href="/projects/regression-ecommerce">
+    Complete implementation guide for the e-commerce project
+  </Card>
+</CardGroup>
